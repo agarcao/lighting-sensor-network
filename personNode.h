@@ -27,6 +27,10 @@ class personNode : public cSimpleModule
         // Node position in the gui (Map)
         int guiX;
         int guiY;
+
+        // Field Size
+        int fieldX;
+        int fieldY;
 };
 
 #endif

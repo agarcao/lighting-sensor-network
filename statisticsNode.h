@@ -21,8 +21,6 @@ class statisticsModule : public cSimpleModule
 
     public:
         int numNodes;
-        int fieldMaxX;
-        int fieldMaxY;
 
         // to get the percentage of coverage
         /*
