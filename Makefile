@@ -28,7 +28,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc and .msg files
-OBJS = $O/personNode.o $O/statisticsNode.o
+OBJS = $O/sensorNode.o $O/personNode.o $O/statisticsNode.o
 
 # Message files
 MSGFILES =
@@ -116,6 +116,10 @@ depend:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/personNode.o: personNode.cc \
 	personNode.h
+$O/sensorNode.o: sensorNode.cc \
+	sensorNode.h \
+	statisticsNode.h
 $O/statisticsNode.o: statisticsNode.cc \
+	sensorNode.h \
 	statisticsNode.h
 

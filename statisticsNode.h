@@ -9,7 +9,9 @@
 #include <omnetpp.h>
 #include <iostream>
 
-class statisticsModule : public cSimpleModule
+#include "sensorNode.h"
+
+class statisticsNode : public cSimpleModule
 {
     cMessage *event;
 
@@ -20,7 +22,13 @@ class statisticsModule : public cSimpleModule
         virtual void finish();
 
     public:
-        int numNodes;
+        int numSensorNodes;
+
+        // Where pointers to sensorNodes gonna be. This is needed to simulate the movement sensor part
+        cArray *sensorNodes;
+
+        // Function to Sensor Nodes be added to the Array when they initialized themselves
+        void registrySensorNodes(sensorNode *s);
 
         // to get the percentage of coverage
         /*

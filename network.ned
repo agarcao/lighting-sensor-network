@@ -3,7 +3,7 @@
 
 package wsn_lighting;
 
-simple statisticsModule
+simple statisticsNode
 {
     parameters:
         int numNodes;
@@ -21,11 +21,27 @@ simple personNode
         int guiY;
 }
 
+simple sensorNode
+{
+	parameters:
+	    int id;
+	    
+	   	int fieldX;
+        int fieldY;
+        
+        int guiX;
+        int guiY;
+        
+        int lightingCircle;
+        int sensorCircle;
+}
+
 network LightingSensorNetwork
 {
     parameters:
         int field_x;
         int field_y;
+        
         int numSensorNodes;
         int numPersonNodes;
 
@@ -33,11 +49,11 @@ network LightingSensorNetwork
         @display("bgb=$field_x,$field_y,#FFF;bgg=5,1,grey95;");
         
     submodules:
-        statistics: statisticsModule {
+        statistics: statisticsNode {
             parameters:
                 numNodes = numSensorNodes;
                 
-                @display("i=block/circle_vs,blue;p=-10,-10");
+                @display("i=block/circle_vs,blue;p=$field_x,-20");
         }
 
         person1: personNode {
@@ -55,6 +71,20 @@ network LightingSensorNetwork
         }
         
         person2: personNode {
+            parameters:
+                id = 2;
+                
+                fieldX = field_x;
+                fieldY = field_y;
+                
+                // Default values
+                guiX = 0;
+                guiY = 0;
+                
+                @display("i=block/user_s,blue;is=vs;");
+        }
+        
+        sensor1: sensorNode {
             parameters:
                 id = 1;
                 
