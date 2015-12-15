@@ -32,8 +32,8 @@ simple sensorNode
         int guiX;
         int guiY;
         
-        int lightingCircle;
-        int sensorCircle;
+        int lightingRadius;
+        int sensorRadius;
 }
 
 network LightingSensorNetwork
@@ -95,6 +95,9 @@ network LightingSensorNetwork
                 guiX = 0;
                 guiY = 0;
                 
-                @display("i=block/user_s,blue;is=vs;");
+                lightingRadius = 100;
+        		sensorRadius = 1000;
+                
+                @display("i=block/user_s,blue;is=vs;r=$sensorRadius;");
         }
 }

@@ -19,6 +19,10 @@ void sensorNode::initialize()
     this->fieldX = par("fieldX");
     this->fieldY = par("fieldY");
 
+    // Radius
+    this->lightingRadius = par("lightingRadius");
+    this->sensorRadius = par("sensorRadius");
+
     // Random Values for initial Person position on the map
     this->guiX = rand() % this->fieldX;
     this->guiY = rand() % this->fieldY;
@@ -27,7 +31,6 @@ void sensorNode::initialize()
             << this->guiX << ", " << this->guiY << ")" << endl;
 
     char s[10];
-    setDisplayString("i=block/user_s,blue;is=vs;");
     cDisplayString &nodeDS = getDisplayString();
 
     // Set x

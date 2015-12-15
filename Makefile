@@ -115,11 +115,15 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/personNode.o: personNode.cc \
-	personNode.h
+	personNode.h \
+	sensorNode.h \
+	statisticsNode.h
 $O/sensorNode.o: sensorNode.cc \
+	personNode.h \
 	sensorNode.h \
 	statisticsNode.h
 $O/statisticsNode.o: statisticsNode.cc \
+	personNode.h \
 	sensorNode.h \
 	statisticsNode.h
 

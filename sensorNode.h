@@ -28,6 +28,9 @@ class sensorNode : public cSimpleModule
 
         int guiX;
         int guiY;
+
+        int lightingRadius;
+        int sensorRadius;
 };
 
 #endif

@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "sensorNode.h"
+#include "personNode.h"
 
 class statisticsNode : public cSimpleModule
 {
@@ -29,6 +30,9 @@ class statisticsNode : public cSimpleModule
 
         // Function to Sensor Nodes be added to the Array when they initialized themselves
         void registrySensorNodes(sensorNode *s);
+
+        // Function to check if PersonNode is inside of some Sensor Node detection circle
+        bool checkPersonNodeDetection(personNode *p);
 
         // to get the percentage of coverage
         /*

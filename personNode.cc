@@ -4,6 +4,7 @@
  */
 
 #include "personNode.h"
+#include "statisticsNode.h"
 
 // The module class needs to be registered with OMNeT++
 Define_Module(personNode);
@@ -47,7 +48,6 @@ void personNode::handleMessage(cMessage *msg)
     // Se é uma mensagem do tipo 'move' o person node tem que se mover
     if (strcmp("move", msg->getName())== 0)
     {
-
         ev << "Eu (Person Node #" << this->id << " ) recebi msg para mover" << endl;
 
         // Mudamos a posição da pessoa (person node)
@@ -55,6 +55,19 @@ void personNode::handleMessage(cMessage *msg)
         this->guiY = (this->guiY + ((rand() % 11) + (-5))) % this->fieldY;
 
         ev << "Move to (" << this->guiX << ", " <<  this->guiY << ")" << endl;
+
+        // Temos de verificar se o nó com a nova posição está dentro do raio de deteção de algum sensor node
+        cModule *statisticsNodeModule = this->getParentModule()->getSubmodule("statistics");
+        statisticsNode *sM = check_and_cast<statisticsNode *>(statisticsNodeModule);
+
+        if (sM->checkPersonNodeDetection(this))
+        {
+            if (ev.isGUI()) bubble("Fui detectado! Tenho que mandar msg...");
+        }
+        else
+        {
+            if (ev.isGUI()) bubble("Não fui detectado!");
+        }
 
         char s[10];
         cDisplayString &nodeDS = getDisplayString();

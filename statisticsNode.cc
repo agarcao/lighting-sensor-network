@@ -31,3 +31,30 @@ void statisticsNode::registrySensorNodes(sensorNode *s)
 {
     this->sensorNodes->add(s);
 }
+
+bool statisticsNode::checkPersonNodeDetection(personNode *p)
+{
+    int i, centerX, centerY, dist;
+    int personNodeXCoord = p->guiX;
+    int personNodeYCoord = p->guiY;
+
+    cObject *cO;
+    sensorNode *s;
+
+    for (i = 0; i < this->sensorNodes->size(); i++)
+    {
+        cO = this->sensorNodes->get(i);
+        s = check_and_cast<sensorNode *>(cO);
+
+        centerX = s->guiX;
+        centerY = s->guiY;
+        dist = sqrt( (double)(centerX-personNodeXCoord)*(centerX-personNodeXCoord) + (centerY-personNodeYCoord)*(centerY-personNodeYCoord));
+
+        if (dist <= s->sensorRadius)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
