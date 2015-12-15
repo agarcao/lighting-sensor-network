@@ -31,6 +31,15 @@ class sensorNode : public cSimpleModule
 
         int lightingRadius;
         int sensorRadius;
+
+        // Say if light of Sensor Node is on or off
+        int lightIntensity;
+
+        /*
+         * FUNCTIONS
+         */
+
+        void detectedMovement();
 };
 
 #endif

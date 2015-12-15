@@ -32,7 +32,7 @@ void statisticsNode::registrySensorNodes(sensorNode *s)
     this->sensorNodes->add(s);
 }
 
-bool statisticsNode::checkPersonNodeDetection(personNode *p)
+void statisticsNode::checkPersonNodeDetection(personNode *p)
 {
     int i, centerX, centerY, dist;
     int personNodeXCoord = p->guiX;
@@ -43,8 +43,9 @@ bool statisticsNode::checkPersonNodeDetection(personNode *p)
 
     for (i = 0; i < this->sensorNodes->size(); i++)
     {
+        // Vejo se o ponto está dentro do raio de deteção ou não
         cO = this->sensorNodes->get(i);
-        s = check_and_cast<sensorNode *>(cO);
+        s = check_and_cast<sensorNode*>(cO);
 
         centerX = s->guiX;
         centerY = s->guiY;
@@ -52,9 +53,8 @@ bool statisticsNode::checkPersonNodeDetection(personNode *p)
 
         if (dist <= s->sensorRadius)
         {
-            return true;
+            // Se tiver temos de desplotar as acções que acontecem após o sensor encontrar movimento
+            s->detectedMovement();
         }
     }
-
-    return false;
 }

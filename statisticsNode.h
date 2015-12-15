@@ -28,11 +28,15 @@ class statisticsNode : public cSimpleModule
         // Where pointers to sensorNodes gonna be. This is needed to simulate the movement sensor part
         cArray *sensorNodes;
 
+        /*
+         * FUNCTIONS
+         */
+
         // Function to Sensor Nodes be added to the Array when they initialized themselves
         void registrySensorNodes(sensorNode *s);
 
         // Function to check if PersonNode is inside of some Sensor Node detection circle
-        bool checkPersonNodeDetection(personNode *p);
+        void checkPersonNodeDetection(personNode *p);
 
         // to get the percentage of coverage
         /*

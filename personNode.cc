@@ -60,14 +60,7 @@ void personNode::handleMessage(cMessage *msg)
         cModule *statisticsNodeModule = this->getParentModule()->getSubmodule("statistics");
         statisticsNode *sM = check_and_cast<statisticsNode *>(statisticsNodeModule);
 
-        if (sM->checkPersonNodeDetection(this))
-        {
-            if (ev.isGUI()) bubble("Fui detectado! Tenho que mandar msg...");
-        }
-        else
-        {
-            if (ev.isGUI()) bubble("Não fui detectado!");
-        }
+        sM->checkPersonNodeDetection(this);
 
         char s[10];
         cDisplayString &nodeDS = getDisplayString();
