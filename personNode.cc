@@ -25,7 +25,6 @@ void personNode::initialize()
             << this->guiX << ", " << this->guiY << ")" << endl;
 
     char s[10];
-    setDisplayString("i=block/user_s,blue;is=vs;");
     cDisplayString &nodeDS = getDisplayString();
 
     // Set x

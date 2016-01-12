@@ -34,6 +34,10 @@ void statisticsNode::registrySensorNodes(sensorNode *s)
 
 void statisticsNode::checkPersonNodeDetection(personNode *p)
 {
+    Enter_Method_Silent("checkPersonNodeDetection(personNode *p)");
+
+    ev << "[Statistics Module] Let see if any sensor detect the person #" << p->id << endl;
+
     int i, centerX, centerY, dist;
     int personNodeXCoord = p->guiX;
     int personNodeYCoord = p->guiY;
@@ -54,6 +58,7 @@ void statisticsNode::checkPersonNodeDetection(personNode *p)
         if (dist <= s->sensorRadius)
         {
             // Se tiver temos de desplotar as acções que acontecem após o sensor encontrar movimento
+            ev << "[Statistics Module] One of the sensor detected the person node #" << p->id << endl;
             s->detectedMovement();
         }
     }

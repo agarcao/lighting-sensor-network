@@ -26,6 +26,9 @@ void sensorNode::initialize()
     // Light Intensity - Should start off
     this->lightIntensity = 0;
 
+    // Time (ticks) until light diminish it intensity if don't detect any movement
+    this->timeToDiminishLightIntensity = 10;
+
     // Random Values for initial Person position on the map
     this->guiX = rand() % this->fieldX;
     this->guiY = rand() % this->fieldY;
@@ -54,7 +57,17 @@ void sensorNode::initialize()
 
 void sensorNode::handleMessage(cMessage *msg)
 {
+    if (strcmp("diminishLightIntensity", msg->getName())== 0)
+    {
+        ev << "[Sensor Node #" << this->id << "] Light is on. Let turn it off" << endl;
+        // Change the light intensity - In a 1st phase just on/off
+        this->lightIntensity = 0;
 
+        ev << "[Sensor Node #" << this->id << "] Light is now off. Make the changes in GUI" << endl;
+        // Represent this change in the GUI
+        cDisplayString &nodeDS = getDisplayString();
+        nodeDS.setTagArg("r",1,"");
+    }
 }
 
 void sensorNode::finish()
@@ -66,10 +79,35 @@ void sensorNode::finish()
  * */
 void sensorNode::detectedMovement()
 {
+    Enter_Method_Silent("detectedMovement()");
+
     ev << "[Sensor Node #" << this->id << "] Movement detected. Entering in detectMovement function" << endl;
 
-    // Change the light intensity - In a 1s phase just on/off
-    this->lightIntensity = 1
+    // Check if sensor node is off
+    if(!this->lightIntensity)
+    {
+        ev << "[Sensor Node #" << this->id << "] Light is off. Let turn it on" << endl;
+        // Change the light intensity - In a 1st phase just on/off
+        this->lightIntensity = 1;
+
+        ev << "[Sensor Node #" << this->id << "] Light is now on. Make the changes in GUI" << endl;
+        // Represent this change in the GUI
+        cDisplayString &nodeDS = getDisplayString();
+        nodeDS.setTagArg("r",1,"#FFF");
+    }
+
+    /* We should cancel the changeLightIntensity event, a restart it all over again with the initial ticks */
+    ev << "[Sensor Node #" << this->id << "] Send new selfMessage to light diminish it intensity" << endl;
+
+    // Cancel and Delete the self event (this way we dont need to check if event is already create or not
+    cancelAndDelete(this->selfEvent);
+
+    // Create new message
+    this->selfEvent = new cMessage("diminishLightIntensity");
+
+    // Set new timer
+    scheduleAt(simTime() + this->timeToDiminishLightIntensity, this->selfEvent);
+
 
     // TODO: Should send message to neighbors sensor nodes to inform them that movement have been detected and they should react to it
 

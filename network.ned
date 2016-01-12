@@ -46,7 +46,7 @@ network LightingSensorNetwork
         int numPersonNodes;
 
 		// Com argumentos vindos do omnet.ini
-        @display("bgb=$field_x,$field_y,#FFF;bgg=5,1,grey95;");
+        @display("bgb=$field_x,$field_y,#FFF;bgg=20,1;");
         
     submodules:
         statistics: statisticsNode {
@@ -67,7 +67,7 @@ network LightingSensorNetwork
                 guiX = 0;
                 guiY = 0;
                 
-                @display("i=block/user_s,blue;is=vs;");
+                @display("i=block/user_vs,blue;is=vs;");
         }
         
         person2: personNode {
@@ -81,7 +81,7 @@ network LightingSensorNetwork
                 guiX = 0;
                 guiY = 0;
                 
-                @display("i=block/user_s,blue;is=vs;");
+                @display("i=block/user_vs,blue;is=vs;");
         }
         
         sensor1: sensorNode {
@@ -96,8 +96,88 @@ network LightingSensorNetwork
                 guiY = 0;
                 
                 lightingRadius = 100;
-        		sensorRadius = 1000;
+        		sensorRadius = 50;
                 
-                @display("i=block/user_s,blue;is=vs;r=$sensorRadius;");
+                @display("i=block/user_vs,blue;is=vs;r=$sensorRadius;");
+        }
+        sensor2: sensorNode {
+            parameters:
+                id = 1;
+                
+                fieldX = field_x;
+                fieldY = field_y;
+                
+                // Default values
+                guiX = 0;
+                guiY = 0;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=block/user_vs,blue;is=vs;r=$sensorRadius;");
+        }
+        sensor3: sensorNode {
+            parameters:
+                id = 1;
+                
+                fieldX = field_x;
+                fieldY = field_y;
+                
+                // Default values
+                guiX = 0;
+                guiY = 0;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=block/user_vs,blue;is=vs;r=$sensorRadius;");
+        }
+        sensor4: sensorNode {
+            parameters:
+                id = 1;
+                
+                fieldX = field_x;
+                fieldY = field_y;
+                
+                // Default values
+                guiX = 0;
+                guiY = 0;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=block/user_vs,blue;is=vs;r=$sensorRadius;");
+        }
+        sensor5: sensorNode {
+            parameters:
+                id = 1;
+                
+                fieldX = field_x;
+                fieldY = field_y;
+                
+                // Default values
+                guiX = 0;
+                guiY = 0;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=block/user_vs,blue;is=vs;r=$sensorRadius;");
+        }
+        sensor6: sensorNode {
+            parameters:
+                id = 1;
+                
+                fieldX = field_x;
+                fieldY = field_y;
+                
+                // Default values
+                guiX = 0;
+                guiY = 0;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=block/user_vs,blue;is=vs;r=$sensorRadius;");
         }
 }

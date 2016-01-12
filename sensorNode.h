@@ -12,7 +12,7 @@
 class sensorNode : public cSimpleModule
 {
     // Event that come to Person Module
-    cMessage *event;
+    cMessage *selfEvent;
 
     protected:
         // The following redefined virtual function holds the algorithm.
@@ -34,10 +34,11 @@ class sensorNode : public cSimpleModule
 
         // Say if light of Sensor Node is on or off
         int lightIntensity;
+        int timeToDiminishLightIntensity;
 
-        /*
-         * FUNCTIONS
-         */
+        /**************
+         * FUNCTIONS *
+         **************/
 
         void detectedMovement();
 };
