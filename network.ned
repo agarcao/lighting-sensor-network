@@ -57,7 +57,7 @@ network LightingSensorNetwork
             parameters:
                 numNodes = numSensorNodes;
                 
-                @display("i=block/circle_vs,blue;p=$fieldXSize,-20;b=50,50,rect,#FFF,#FFF");
+                @display("i=block/circle_vs,blue;p=$fieldXSize,-20;");
         }
 
         person1: personNode {
@@ -90,7 +90,7 @@ network LightingSensorNetwork
         
         sensor1: sensorNode {
             parameters:
-                id = 100;
+                id = 1;
                 
                 lightingRadius = 100;
         		sensorRadius = 50;
@@ -99,6 +99,71 @@ network LightingSensorNetwork
         		verticalCells = vertical_cells;
         		cellSize = cell_size;
                 
-                @display("i=block/user_vs,blue;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;b=$cellSize,$cellSize,rect,#FFF,#FFF");
+                @display("i=status/off_25,blue,0;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
+        }
+        sensor2: sensorNode {
+            parameters:
+                id = 2;
+                
+                horizontalCells = horizontal_cells;
+        		verticalCells = vertical_cells;
+        		cellSize = cell_size;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
+        }
+        sensor3: sensorNode {
+            parameters:
+                id = 3;
+                
+                horizontalCells = horizontal_cells;
+        		verticalCells = vertical_cells;
+        		cellSize = cell_size;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
+        }
+        sensor4: sensorNode {
+            parameters:
+                id = 4;
+                
+                horizontalCells = horizontal_cells;
+        		verticalCells = vertical_cells;
+        		cellSize = cell_size;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
+        }
+        sensor5: sensorNode {
+            parameters:
+                id = 5;
+                
+                horizontalCells = horizontal_cells;
+        		verticalCells = vertical_cells;
+        		cellSize = cell_size;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
+        }
+        sensor6: sensorNode {
+            parameters:
+                id = 6;
+                
+                horizontalCells = horizontal_cells;
+        		verticalCells = vertical_cells;
+        		cellSize = cell_size;
+                
+                lightingRadius = 100;
+        		sensorRadius = 50;
+                
+                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
         }
 }

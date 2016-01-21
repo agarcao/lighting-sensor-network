@@ -36,12 +36,12 @@ void sensorNode::initialize()
     {
         // We must discover where the sensor must be draw
         //// 1st - What line it should be draw
-        int lineToDraw = this->id / this->horizontalCells;
-        this->guiX = (lineToDraw * this->cellSize) + (this->cellSize / 2);
+        int lineToDraw = (this->id - 1) / this->horizontalCells;
+        this->guiY = (lineToDraw * this->cellSize) + (this->cellSize / 2);
 
         //// 2nd - What line it should be draw
         int collumnToDraw = (this->id - 1) % this->horizontalCells;
-        this->guiY = (collumnToDraw * this->cellSize) + (this->cellSize / 2);
+        this->guiX = (collumnToDraw * this->cellSize) + (this->cellSize / 2);
 
         ev << "Eu (Sensor Node #" << this->id << " ) inicializei-me na posição (" << this->guiX << ", " << this->guiY << ")" << endl;
 
@@ -82,7 +82,7 @@ void sensorNode::handleMessage(cMessage *msg)
         ev << "[Sensor Node #" << this->id << "] Light is now off. Make the changes in GUI" << endl;
         // Represent this change in the GUI
         cDisplayString &nodeDS = getDisplayString();
-        nodeDS.setTagArg("r",1,"");
+        nodeDS.setTagArg("i",0,"status/off_25");
     }
 }
 
@@ -109,7 +109,7 @@ void sensorNode::detectedMovement()
         ev << "[Sensor Node #" << this->id << "] Light is now on. Make the changes in GUI" << endl;
         // Represent this change in the GUI
         cDisplayString &nodeDS = getDisplayString();
-        nodeDS.setTagArg("r",1,"#FFF");
+        nodeDS.setTagArg("i",0,"status/yellow_25");
     }
 
     /* We should cancel the changeLightIntensity event, a restart it all over again with the initial ticks */
