@@ -23,9 +23,7 @@ class sensorNode : public cSimpleModule
     public:
         int id;
 
-        int fieldX;
-        int fieldY;
-
+        // Where icon are draw in GUI
         int guiX;
         int guiY;
 
@@ -35,6 +33,11 @@ class sensorNode : public cSimpleModule
         // Say if light of Sensor Node is on or off
         int lightIntensity;
         int timeToDiminishLightIntensity;
+
+        // Nr of horizontal and vertical cells in the GUI. And the size of one cell
+        int horizontalCells;
+        int verticalCells;
+        int cellSize;
 
         /**************
          * FUNCTIONS *

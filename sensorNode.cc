@@ -15,9 +15,10 @@ void sensorNode::initialize()
 
     this->id = par("id");
 
-    // Field Size
-    this->fieldX = par("fieldX");
-    this->fieldY = par("fieldY");
+    // Nr of horizontal and vertical cells in the GUI. And the size of one cell
+    this->horizontalCells = par("horizontalCells");
+    this->verticalCells = par("verticalCells");
+    this->cellSize = par("cellSize");
 
     // Radius
     this->lightingRadius = par("lightingRadius");
@@ -29,28 +30,43 @@ void sensorNode::initialize()
     // Time (ticks) until light diminish it intensity if don't detect any movement
     this->timeToDiminishLightIntensity = 10;
 
-    // Random Values for initial Person position on the map
-    this->guiX = rand() % this->fieldX;
-    this->guiY = rand() % this->fieldY;
+    int numCellsInGui = this->horizontalCells * this->verticalCells;
 
-    ev << "Eu (Sensor Node #" << this->id << " ) inicializei-me na posição (" << this->guiX << ", " << this->guiY << ")" << endl;
+    if (this->id > 0 && this->id <= numCellsInGui)
+    {
+        // We must discover where the sensor must be draw
+        //// 1st - What line it should be draw
+        int lineToDraw = this->id / this->horizontalCells;
+        this->guiX = (lineToDraw * this->cellSize) + (this->cellSize / 2);
 
-    char s[10];
-    cDisplayString &nodeDS = getDisplayString();
+        //// 2nd - What line it should be draw
+        int collumnToDraw = (this->id - 1) % this->horizontalCells;
+        this->guiY = (collumnToDraw * this->cellSize) + (this->cellSize / 2);
 
-    // Set x
-    sprintf(s,"%d",this->guiX);
-    nodeDS.setTagArg("p",0,s);
+        ev << "Eu (Sensor Node #" << this->id << " ) inicializei-me na posição (" << this->guiX << ", " << this->guiY << ")" << endl;
 
-    // Set y
-    sprintf(s,"%d",this->guiY);
-    nodeDS.setTagArg("p",1,s);
+        char s[10];
+        cDisplayString &nodeDS = getDisplayString();
 
-    // Regist in Statists Module
-    cModule *statisticsNodeModule = this->getParentModule()->getSubmodule("statistics");
-    statisticsNode *sM = check_and_cast<statisticsNode *>(statisticsNodeModule);
+        // Set x
+        sprintf(s,"%d",this->guiX);
+        nodeDS.setTagArg("p",0,s);
 
-    sM->registrySensorNodes(this);
+        // Set y
+        sprintf(s,"%d",this->guiY);
+        nodeDS.setTagArg("p",1,s);
+
+        // Regist in Statists Module
+        cModule *statisticsNodeModule = this->getParentModule()->getSubmodule("statistics");
+        statisticsNode *sM = check_and_cast<statisticsNode *>(statisticsNodeModule);
+
+        sM->registrySensorNodes(this);
+    }
+    // If node isn't between 0 and num of cells in GUI - 1 then can't be draw
+    else
+    {
+        ev << "Eu (Sensor Node #" << this->id << " ) não tenho ID entre 0 e " << numCellsInGui << ". Não inicializei-me!" << endl;
+    }
 
     ev << "End the initialization Sensor Node" << endl;
 }
