@@ -32,6 +32,12 @@ simple sensorNode
         
         int lightingRadius;
         int sensorRadius;
+        
+        string neighborsNodes;
+        
+    gates:
+        input in;
+        output out;
 }
 
 network LightingSensorNetwork
@@ -98,6 +104,8 @@ network LightingSensorNetwork
         		horizontalCells = horizontal_cells;
         		verticalCells = vertical_cells;
         		cellSize = cell_size;
+        		
+        		neighborsNodes = "-1 -1 -1 -1 2 -1 6 -1";
                 
                 @display("i=status/off_25,blue,0;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
         }
@@ -108,62 +116,18 @@ network LightingSensorNetwork
                 horizontalCells = horizontal_cells;
         		verticalCells = vertical_cells;
         		cellSize = cell_size;
+        		
+        		neighborsNodes = "-1 -1 -1 -1 -1 -1 -1 -1";
                 
                 lightingRadius = 100;
         		sensorRadius = 50;
                 
                 @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
         }
-        sensor3: sensorNode {
-            parameters:
-                id = 3;
-                
-                horizontalCells = horizontal_cells;
-        		verticalCells = vertical_cells;
-        		cellSize = cell_size;
-                
-                lightingRadius = 100;
-        		sensorRadius = 50;
-                
-                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
-        }
-        sensor4: sensorNode {
-            parameters:
-                id = 4;
-                
-                horizontalCells = horizontal_cells;
-        		verticalCells = vertical_cells;
-        		cellSize = cell_size;
-                
-                lightingRadius = 100;
-        		sensorRadius = 50;
-                
-                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
-        }
-        sensor5: sensorNode {
-            parameters:
-                id = 5;
-                
-                horizontalCells = horizontal_cells;
-        		verticalCells = vertical_cells;
-        		cellSize = cell_size;
-                
-                lightingRadius = 100;
-        		sensorRadius = 50;
-                
-                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
-        }
-        sensor6: sensorNode {
-            parameters:
-                id = 6;
-                
-                horizontalCells = horizontal_cells;
-        		verticalCells = vertical_cells;
-        		cellSize = cell_size;
-                
-                lightingRadius = 100;
-        		sensorRadius = 50;
-                
-                @display("i=status/off_25;is=vs;r=$sensorRadius,,#8080FF;p=-1000,-1000;");
-        }
+        
+	
+	connections:
+        sensor1.out --> {  delay = 100ms; } --> sensor2.in;
+        sensor1.in <-- {  delay = 100ms; } <-- sensor2.out;
+        
 }

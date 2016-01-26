@@ -37,7 +37,7 @@ void personNode::initialize()
 
     // Finaly send message to itself to move
     this->event = new cMessage("move");
-    scheduleAt(simTime() + 5, this->event);
+    scheduleAt(simTime() + 1000, this->event);
 
     ev << "Send move message" << endl;
 }
@@ -72,7 +72,7 @@ void personNode::handleMessage(cMessage *msg)
         nodeDS.setTagArg("p",1,s);
 
         ev << "Send NEW move message" << endl;
-        scheduleAt(simTime() + 5, this->event);
+        scheduleAt(simTime() + 1000, this->event);
     }
 }
 

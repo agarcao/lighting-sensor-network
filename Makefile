@@ -28,10 +28,11 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc and .msg files
-OBJS = $O/sensorNode.o $O/personNode.o $O/statisticsNode.o
+OBJS = $O/sensorNode.o $O/personNode.o $O/statisticsNode.o $O/broadcast_m.o
 
 # Message files
-MSGFILES =
+MSGFILES = \
+    broadcast.msg
 
 #------------------------------------------------------------------------------
 
@@ -114,15 +115,20 @@ depend:
 	$(Q)$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+$O/broadcast_m.o: broadcast_m.cc \
+	broadcast_m.h
 $O/personNode.o: personNode.cc \
+	broadcast_m.h \
 	personNode.h \
 	sensorNode.h \
 	statisticsNode.h
 $O/sensorNode.o: sensorNode.cc \
+	broadcast_m.h \
 	personNode.h \
 	sensorNode.h \
 	statisticsNode.h
 $O/statisticsNode.o: statisticsNode.cc \
+	broadcast_m.h \
 	personNode.h \
 	sensorNode.h \
 	statisticsNode.h

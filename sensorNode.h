@@ -9,10 +9,13 @@
 #include <omnetpp.h>
 #include <iostream>
 
+#include "broadcast_m.h"
+
 class sensorNode : public cSimpleModule
 {
     // Event that come to Person Module
     cMessage *selfEvent;
+    BroadcastMsg *broadCastMsg;
 
     protected:
         // The following redefined virtual function holds the algorithm.
@@ -38,6 +41,9 @@ class sensorNode : public cSimpleModule
         int horizontalCells;
         int verticalCells;
         int cellSize;
+
+        // In this vector, are the neighbors sensor nodes of this node. The order is the following: NW, N, NE, W, E, SW, S, SE
+        std::vector<int> neighborsNodes;
 
         /**************
          * FUNCTIONS *

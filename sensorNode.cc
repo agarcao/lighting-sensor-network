@@ -30,6 +30,7 @@ void sensorNode::initialize()
     // Time (ticks) until light diminish it intensity if don't detect any movement
     this->timeToDiminishLightIntensity = 10;
 
+    // We need to check where to put the node in the GUI
     int numCellsInGui = this->horizontalCells * this->verticalCells;
 
     if (this->id > 0 && this->id <= numCellsInGui)
@@ -68,12 +69,21 @@ void sensorNode::initialize()
         ev << "Eu (Sensor Node #" << this->id << " ) não tenho ID entre 0 e " << numCellsInGui << ". Não inicializei-me!" << endl;
     }
 
+    // Assign the neighboors nodes
+    const char *vstr = par("neighborsNodes").stringValue();
+    this->neighborsNodes = cStringTokenizer(vstr).asIntVector();
+
+    for(int i=0; i < this->neighborsNodes.size(); ++i)
+        ev << i << " : " << this->neighborsNodes[i] << endl;
+
+    ev << "Neighbors assigned" << endl;
+
     ev << "End the initialization Sensor Node" << endl;
 }
 
 void sensorNode::handleMessage(cMessage *msg)
 {
-    if (strcmp("diminishLightIntensity", msg->getName())== 0)
+    if (strcmp("diminishLightIntensity", msg->getName()) == 0)
     {
         ev << "[Sensor Node #" << this->id << "] Light is on. Let turn it off" << endl;
         // Change the light intensity - In a 1st phase just on/off
@@ -84,6 +94,11 @@ void sensorNode::handleMessage(cMessage *msg)
         cDisplayString &nodeDS = getDisplayString();
         nodeDS.setTagArg("i",0,"status/off_25");
     }
+    else if (strcmp("broadcastMsg", msg->getName()) == 0)
+    {
+        ev << "[Sensor Node #" << this->id << "] Receive a Broadcast Msg" << endl;
+    }
+
 }
 
 void sensorNode::finish()
@@ -124,8 +139,15 @@ void sensorNode::detectedMovement()
     // Set new timer
     scheduleAt(simTime() + this->timeToDiminishLightIntensity, this->selfEvent);
 
+    // Create the Broadcast Msg to send
+    this->broadCastMsg = new BroadcastMsg("broadcastMsg");
+    this->broadCastMsg->setSource(this->id);
 
-    // TODO: Should send message to neighbors sensor nodes to inform them that movement have been detected and they should react to it
+    ev << "[Sensor Node #" << this->id << "] Send the broadcast Msg" << endl;
+
+    // Broadcast the msg
+    send(this->broadCastMsg, "out");
+
 
     ev << "[Sensor Node #" << this->id << "] Exiting detectMovement function" << endl;
 }
