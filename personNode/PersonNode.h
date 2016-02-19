@@ -9,7 +9,10 @@
 #include <omnetpp.h>
 #include <iostream>
 
-class personNode : public cSimpleModule
+#include "PhysicalProcessMessage_m.h"
+#include "CastaliaModule.h"
+
+class PersonNode : public cSimpleModule
 {
     // Event that come to Person Module
     cMessage *event;
@@ -21,16 +24,9 @@ class personNode : public cSimpleModule
         virtual void initialize();
 
     public:
-        // Person Id
-        int id;
-
-        // Node position in the gui (Map)
-        int guiX;
-        int guiY;
-
-        // Field Size
-        int fieldX;
-        int fieldY;
+        // Node position
+        int xCoor;
+        int yCoor;
 };
 
 #endif

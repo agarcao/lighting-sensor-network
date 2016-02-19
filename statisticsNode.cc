@@ -32,7 +32,7 @@ void statisticsNode::registrySensorNodes(sensorNode *s)
     this->sensorNodes->add(s);
 }
 
-void statisticsNode::checkPersonNodeDetection(personNode *p)
+/*void statisticsNode::checkPersonNodeDetection(personNode *p)
 {
     Enter_Method_Silent("checkPersonNodeDetection(personNode *p)");
 
@@ -62,4 +62,5 @@ void statisticsNode::checkPersonNodeDetection(personNode *p)
             s->detectedMovement();
         }
     }
-}
+
+}*/

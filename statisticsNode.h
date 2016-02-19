@@ -10,7 +10,6 @@
 #include <iostream>
 
 #include "sensorNode.h"
-#include "personNode.h"
 
 class statisticsNode : public cSimpleModule
 {
@@ -36,7 +35,7 @@ class statisticsNode : public cSimpleModule
         void registrySensorNodes(sensorNode *s);
 
         // Function to check if PersonNode is inside of some Sensor Node detection circle
-        void checkPersonNodeDetection(personNode *p);
+        //void checkPersonNodeDetection(personNode *p);
 
         // to get the percentage of coverage
         /*
