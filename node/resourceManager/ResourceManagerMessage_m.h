@@ -21,6 +21,7 @@
  * message ResourceManagerMessage
  * {
  *     double powerConsumed;
+ *     bool increaseLightIntensity; // Says if we must increase or decrease the light
  * }
  * </pre>
  */
@@ -28,6 +29,7 @@ class ResourceManagerMessage : public ::cMessage
 {
   protected:
     double powerConsumed_var;
+    bool increaseLightIntensity_var;
 
   private:
     void copy(const ResourceManagerMessage& other);
@@ -48,6 +50,8 @@ class ResourceManagerMessage : public ::cMessage
     // field getter/setter methods
     virtual double getPowerConsumed() const;
     virtual void setPowerConsumed(double powerConsumed);
+    virtual bool getIncreaseLightIntensity() const;
+    virtual void setIncreaseLightIntensity(bool increaseLightIntensity);
 };
 
 inline void doPacking(cCommBuffer *b, ResourceManagerMessage& obj) {obj.parsimPack(b);}

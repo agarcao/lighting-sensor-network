@@ -285,19 +285,31 @@ void SensorManager::detectedMovement()
 {
     Enter_Method_Silent("detectedMovement()");
 
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << "] Movement detected. Entering in detectMovement function" << endl;
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Sensor Manager Module] Movement detected. Entering in detectMovement function" << endl;
+
+    // Tenho que mandar msg para a Application (onde está a logica do nó) p/ ele decidir o que fazer.
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Sensor Manager Module] We must send this information to the Application module. Sending..." << endl;
+
+    // 1st - Build the sensor reading msg
+    string msg = "detectPersonBySensor#" + getParentModule()->getIndex();
+    SensorReadingMessage *sensorReadingMsg = new SensorReadingMessage(msg.c_str(), SENSOR_READING_MESSAGE);
+
+    // 2st - Send to application
+    send(sensorReadingMsg, "toApplicationModule");
+
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Sensor Manager Module] Sensor Reading Msg sended." << endl;
 
     // Check if sensor node is off
     //if(!this->lightIntensity)
     //{
-        ev << "[Sensor Node #" << getParentModule()->getIndex() << "] Light is off. Let turn it on" << endl;
+        //ev << "[Sensor Node #" << getParentModule()->getIndex() << "] Light is off. Let turn it on" << endl;
         // TODO: Change the light intensity - In a 1st phase just on/off
         //this->lightIntensity = 1;
 
-        ev << "[Sensor Node #" << getParentModule()->getIndex() << "] Light is now on. Make the changes in GUI" << endl;
+        //ev << "[Sensor Node #" << getParentModule()->getIndex() << "] Light is now on. Make the changes in GUI" << endl;
         // Represent this change in the GUI
-        cDisplayString &nodeDS = getParentModule()->getDisplayString();
-        nodeDS.setTagArg("i",0,"status/yellow_25");
+        //cDisplayString &nodeDS = getParentModule()->getDisplayString();
+        //nodeDS.setTagArg("i",0,"status/yellow_25");
     //}
 
     // We should cancel the changeLightIntensity event, a restart it all over again with the initial ticks

@@ -35,7 +35,7 @@ simple PersonNode {
     	// Node will become active startupOffset + random(startupRandomization) 
     	// seconds after the start of simulation
     	
-    	int timeBetweenMoves = default(1000);
+    	int timeBetweenMoves = default(100);
     	
 	gates:
 	    output toPhysicalProcess[];

@@ -58,6 +58,7 @@ Register_Class(ResourceManagerMessage);
 ResourceManagerMessage::ResourceManagerMessage(const char *name, int kind) : ::cMessage(name,kind)
 {
     this->powerConsumed_var = 0;
+    this->increaseLightIntensity_var = 0;
 }
 
 ResourceManagerMessage::ResourceManagerMessage(const ResourceManagerMessage& other) : ::cMessage(other)
@@ -80,18 +81,21 @@ ResourceManagerMessage& ResourceManagerMessage::operator=(const ResourceManagerM
 void ResourceManagerMessage::copy(const ResourceManagerMessage& other)
 {
     this->powerConsumed_var = other.powerConsumed_var;
+    this->increaseLightIntensity_var = other.increaseLightIntensity_var;
 }
 
 void ResourceManagerMessage::parsimPack(cCommBuffer *b)
 {
     ::cMessage::parsimPack(b);
     doPacking(b,this->powerConsumed_var);
+    doPacking(b,this->increaseLightIntensity_var);
 }
 
 void ResourceManagerMessage::parsimUnpack(cCommBuffer *b)
 {
     ::cMessage::parsimUnpack(b);
     doUnpacking(b,this->powerConsumed_var);
+    doUnpacking(b,this->increaseLightIntensity_var);
 }
 
 double ResourceManagerMessage::getPowerConsumed() const
@@ -102,6 +106,16 @@ double ResourceManagerMessage::getPowerConsumed() const
 void ResourceManagerMessage::setPowerConsumed(double powerConsumed)
 {
     this->powerConsumed_var = powerConsumed;
+}
+
+bool ResourceManagerMessage::getIncreaseLightIntensity() const
+{
+    return increaseLightIntensity_var;
+}
+
+void ResourceManagerMessage::setIncreaseLightIntensity(bool increaseLightIntensity)
+{
+    this->increaseLightIntensity_var = increaseLightIntensity;
 }
 
 class ResourceManagerMessageDescriptor : public cClassDescriptor
@@ -151,7 +165,7 @@ const char *ResourceManagerMessageDescriptor::getProperty(const char *propertyna
 int ResourceManagerMessageDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
 }
 
 unsigned int ResourceManagerMessageDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -164,8 +178,9 @@ unsigned int ResourceManagerMessageDescriptor::getFieldTypeFlags(void *object, i
     }
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,
+        FD_ISEDITABLE,
     };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
 }
 
 const char *ResourceManagerMessageDescriptor::getFieldName(void *object, int field) const
@@ -178,8 +193,9 @@ const char *ResourceManagerMessageDescriptor::getFieldName(void *object, int fie
     }
     static const char *fieldNames[] = {
         "powerConsumed",
+        "increaseLightIntensity",
     };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+    return (field>=0 && field<2) ? fieldNames[field] : NULL;
 }
 
 int ResourceManagerMessageDescriptor::findField(void *object, const char *fieldName) const
@@ -187,6 +203,7 @@ int ResourceManagerMessageDescriptor::findField(void *object, const char *fieldN
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
     if (fieldName[0]=='p' && strcmp(fieldName, "powerConsumed")==0) return base+0;
+    if (fieldName[0]=='i' && strcmp(fieldName, "increaseLightIntensity")==0) return base+1;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -200,8 +217,9 @@ const char *ResourceManagerMessageDescriptor::getFieldTypeString(void *object, i
     }
     static const char *fieldTypeStrings[] = {
         "double",
+        "bool",
     };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *ResourceManagerMessageDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -242,6 +260,7 @@ std::string ResourceManagerMessageDescriptor::getFieldAsString(void *object, int
     ResourceManagerMessage *pp = (ResourceManagerMessage *)object; (void)pp;
     switch (field) {
         case 0: return double2string(pp->getPowerConsumed());
+        case 1: return bool2string(pp->getIncreaseLightIntensity());
         default: return "";
     }
 }
@@ -257,6 +276,7 @@ bool ResourceManagerMessageDescriptor::setFieldAsString(void *object, int field,
     ResourceManagerMessage *pp = (ResourceManagerMessage *)object; (void)pp;
     switch (field) {
         case 0: pp->setPowerConsumed(string2double(value)); return true;
+        case 1: pp->setIncreaseLightIntensity(string2bool(value)); return true;
         default: return false;
     }
 }

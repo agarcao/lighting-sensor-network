@@ -43,6 +43,7 @@ void ResourceManager::initialize()
 	remainingEnergy = initialEnergy;
 	totalRamData = 0;
 	disabled = true;
+	this->lightIntensity = par("lightIntensity");
 }
 
 void ResourceManager::calculateEnergySpent()
@@ -93,6 +94,12 @@ void ResourceManager::handleMessage(cMessage * msg)
 			currentNodePower = currentNodePower - oldPower + resMsg->getPowerConsumed();
 			storedPowerConsumptions[id] = resMsg->getPowerConsumed();
 			break;
+		}
+
+		case RESOURCE_MANAGER_LIGHT:{
+		    ResourceManagerMessage *resMsg = check_and_cast<ResourceManagerMessage*>(msg);
+		    this->changeLightIntensity(resMsg->getIncreaseLightIntensity());
+		    break;
 		}
 
 		default:{
@@ -169,3 +176,32 @@ void ResourceManager::RamFree(int numBytes)
 	totalRamData = (totalRamData < 0) ? 0 : totalRamData;
 }
 
+/*
+ * Function to see if we must change the node's light intensity and make also this changes in the GUI
+ */
+void ResourceManager::changeLightIntensity(bool increase)
+{
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Enter in changeLightIntensity function" << endl;
+
+    string displayString;
+
+    // 1st - Check if boolean is true or not
+    if(increase)
+    {
+        ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Increase msg receive. We gonna put the light on" << endl;
+        this->lightIntensity = 1;
+        displayString = "status/yellow_25";
+    }
+    else
+    {
+        ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Light intensity gonna decrease" << endl;
+        this->lightIntensity = 0;
+        displayString = "status/off";
+    }
+
+    // Put in GUI
+    cDisplayString &nodeDS = getParentModule()->getDisplayString();
+    nodeDS.setTagArg("i",0,displayString.c_str());
+
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Exiting changeLightIntensity function" << endl;
+}

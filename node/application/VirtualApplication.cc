@@ -146,7 +146,14 @@ void VirtualApplication::handleMessage(cMessage * msg)
 
 		default:
 		{
-			opp_error("Application module received unexpected message");
+		    if(strcmp("diminishLightIntensity", msg->getName()) == 0)
+		    {
+		        handleSelfEvent();
+		    }
+		    else
+		    {
+		        opp_error("Application module received unexpected message");
+		    }
 		}
 	}
 

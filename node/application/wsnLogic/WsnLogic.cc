@@ -10,6 +10,8 @@ void WsnLogic::startup()
     randomBackoffIntervalFraction = genk_dblrand(0);
     sentOnce = false;
 
+    this->timeToDiminishLightIntensity = par("timeToDiminishLightIntensity");
+
     //setTimer(REQUEST_SAMPLE, maxSampleInterval * randomBackoffIntervalFraction);
 }
 
@@ -36,25 +38,68 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
 
 void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
 {
+    // TODO: Receive SensorReadingMsg and do things
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Enter handleSensorReading function" << endl;
+
+    // 1st - We must say to the resource module to set the light up
+    //// Construct the msg
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] We must send msg to Resource Module to set the light up" << endl;
+    string msg = "increaseLightSensor#" + getParentModule()->getIndex();
+    ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
+    resourceManagerMsg->setIncreaseLightIntensity(true);
+
+    //// Send the msg to Resource
+    send(resourceManagerMsg, "toResourceManager");
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Msg to Resource Module sent" << endl;
+
+    // 2nd - We must now create a self event to decrease the light intensity
+    //// Cancel and Delete the self event (this way we dont need to check if event is already create or not
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Create a new self event to diminish the light intensity" << endl;
+    cancelAndDelete(this->selfEvent);
+
+    //// Create new message
+    this->selfEvent = new cMessage("diminishLightIntensity");
+
+    //// Set new timer
+    scheduleAt(simTime() + this->timeToDiminishLightIntensity, this->selfEvent);
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Self event to diminish the light intensity schedule" << endl;
+
+
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Exiting handleSensorReading function" << endl;
     // int sensIndex =  rcvReading->getSensorIndex();
     // string sensType(rcvReading->getSensorType());
-    double sensValue = rcvReading->getSensedValue();
+    //double sensValue = rcvReading->getSensedValue();
 
     // schedule the TX of the value
-    trace() << "Sensed = " << sensValue;
+    //trace() << "Sensed = " << sensValue;
 
-    WsnLogicData tmpData;
-    tmpData.nodeID = (unsigned short)self;
-    tmpData.locX = mobilityModule->getLocation().x;
-    tmpData.locY = mobilityModule->getLocation().y;
+    //WsnLogicData tmpData;
+    //tmpData.nodeID = (unsigned short)self;
+    //tmpData.locX = mobilityModule->getLocation().x;
+    //tmpData.locY = mobilityModule->getLocation().y;
 
-    WsnLogicDataPacket *packet2Net =
-        new WsnLogicDataPacket("Value reporting pck", APPLICATION_PACKET);
-    packet2Net->setExtraData(tmpData);
-    packet2Net->setData(sensValue);
-    packet2Net->setSequenceNumber(currSentSampleSN);
-    currSentSampleSN++;
+   // WsnLogicDataPacket *packet2Net =
+        //new WsnLogicDataPacket("Value reporting pck", APPLICATION_PACKET);
+   // packet2Net->setExtraData(tmpData);
+    //packet2Net->setData(sensValue);
+    //packet2Net->setSequenceNumber(currSentSampleSN);
+    //currSentSampleSN++;
 
-    toNetworkLayer(packet2Net, SINK_NETWORK_ADDRESS);
-    sentOnce = true;
+    //toNetworkLayer(packet2Net, SINK_NETWORK_ADDRESS);
+    //sentOnce = true;
+}
+
+/*
+ * Function to handle the self event
+ */
+void WsnLogic::handleSelfEvent()
+{
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Receive a diminishLightIntensityEvent. Let send info to Resource Module" << endl;
+
+    // Send msg to Resource Module
+    string msg = "decreaseLightSensor#" + getParentModule()->getIndex();
+    ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
+    send(resourceManagerMsg, "toResourceManager");
+
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Msg to diminish the light intensity send to Resource Module" << endl;
 }

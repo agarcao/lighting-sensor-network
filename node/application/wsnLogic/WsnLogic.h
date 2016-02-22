@@ -13,6 +13,9 @@ enum WsnLogicTimers {
 
 class WsnLogic: public VirtualApplication {
  private:
+    cMessage *selfEvent;                // Where we put the event to diminish the light intensity
+    int timeToDiminishLightIntensity;   // Time (in msec) for light to diminish its intensity
+
     double maxSampleInterval;
     double minSampleInterval;
 
@@ -28,6 +31,7 @@ class WsnLogic: public VirtualApplication {
     void fromNetworkLayer(ApplicationPacket *, const char *, double, double);
     void handleSensorReading(SensorReadingMessage *);
     void timerFiredCallback(int);
+    void handleSelfEvent();
 };
 
 #endif              // _WSNLOGIC_H_

@@ -29,9 +29,11 @@ simple WsnLogic like wsn_lighting.node.application.iApplication {
 	int minSampleInterval = default (1000);	// in msec
 	bool isSink = default (false);
 
+	int timeToDiminishLightIntensity = default(50); // Time (in msec) for light to diminish its intensity
  gates:
  	output toCommunicationModule;
 	output toSensorDeviceManager;
+	output toResourceManager;
 	input fromCommunicationModule;
 	input fromSensorDeviceManager;
 	input fromResourceManager;

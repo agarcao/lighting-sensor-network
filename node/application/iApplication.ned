@@ -26,6 +26,7 @@ moduleinterface iApplication {
      gates: 
      	output toCommunicationModule;
     	output toSensorDeviceManager;
+    	output toResourceManager;
     	input fromCommunicationModule;
     	input fromSensorDeviceManager;
     	input fromResourceManager;

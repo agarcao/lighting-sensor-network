@@ -29,6 +29,7 @@ simple ValueReporting like wsn_lighting.node.application.iApplication {
  gates:
  	output toCommunicationModule;
 	output toSensorDeviceManager;
+	output toResourceManager;
 	input fromCommunicationModule;
 	input fromSensorDeviceManager;
 	input fromResourceManager;

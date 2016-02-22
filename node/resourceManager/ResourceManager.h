@@ -35,6 +35,7 @@ class ResourceManager: public CastaliaModule {
 	double currentNodePower;
 	simtime_t timeOfLastCalculation;
 	double periodicEnergyCalculationInterval;
+	int lightIntensity;
 
 	/*--- Custom class parameters ---*/
 	double remainingEnergy;
@@ -50,6 +51,7 @@ class ResourceManager: public CastaliaModule {
 	virtual void handleMessage(cMessage * msg);
 	virtual void finishSpecific();
 	void calculateEnergySpent();
+	void changeLightIntensity(bool increase);
 
  public:
 	double getCPUClockDrift(void);
