@@ -7,13 +7,11 @@
 using namespace std;
 
 enum WsnLogicTimers {
-    REQUEST_SAMPLE = 1,
-    SEND_DATA = 2,
+    DIMINISH_LIGHT = 1
 };
 
 class WsnLogic: public VirtualApplication {
  private:
-    cMessage *selfEvent;                // Where we put the event to diminish the light intensity
     int timeToDiminishLightIntensity;   // Time (in msec) for light to diminish its intensity
 
     double maxSampleInterval;

@@ -164,3 +164,11 @@ void PersonsPhysicalProcess::checkPersonNodeDetection(PersonNode *p)
         }
     }
 }
+
+void PersonsPhysicalProcess::updateGUI()
+{
+    cDisplayString &ds = this->getDisplayString();
+
+    ds.parse(ds.str());
+
+}

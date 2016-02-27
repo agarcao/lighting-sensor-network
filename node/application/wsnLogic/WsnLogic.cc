@@ -17,11 +17,11 @@ void WsnLogic::startup()
 
 void WsnLogic::timerFiredCallback(int index)
 {
-    switch (index) {
-
-        case REQUEST_SAMPLE:{
-            requestSensorReading();
-            setTimer(REQUEST_SAMPLE, maxSampleInterval);
+    switch (index)
+    {
+        case WsnLogicTimers::DIMINISH_LIGHT:
+        {
+            handleSelfEvent();
             break;
         }
     }
@@ -38,13 +38,18 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
 
 void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
 {
+    cout << "Entro no handleSensorReading\n";
+
     // TODO: Receive SensorReadingMsg and do things
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Enter handleSensorReading function" << endl;
 
     // 1st - We must say to the resource module to set the light up
     //// Construct the msg
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] We must send msg to Resource Module to set the light up" << endl;
-    string msg = "increaseLightSensor#" + getParentModule()->getIndex();
+
+    ostringstream s;
+    s << "increaseLightSensor#" << getParentModule()->getIndex();
+    string msg = s.str();
     ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
     resourceManagerMsg->setIncreaseLightIntensity(true);
 
@@ -55,13 +60,10 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
     // 2nd - We must now create a self event to decrease the light intensity
     //// Cancel and Delete the self event (this way we dont need to check if event is already create or not
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Create a new self event to diminish the light intensity" << endl;
-    cancelAndDelete(this->selfEvent);
-
-    //// Create new message
-    this->selfEvent = new cMessage("diminishLightIntensity");
 
     //// Set new timer
-    scheduleAt(simTime() + this->timeToDiminishLightIntensity, this->selfEvent);
+    setTimer(WsnLogicTimers::DIMINISH_LIGHT, this->timeToDiminishLightIntensity);
+
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Self event to diminish the light intensity schedule" << endl;
 
 
@@ -97,7 +99,9 @@ void WsnLogic::handleSelfEvent()
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Receive a diminishLightIntensityEvent. Let send info to Resource Module" << endl;
 
     // Send msg to Resource Module
-    string msg = "decreaseLightSensor#" + getParentModule()->getIndex();
+    ostringstream s;
+    s << "decreaseLightSensor#" << getParentModule()->getIndex();
+    string msg = s.str();
     ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
     send(resourceManagerMsg, "toResourceManager");
 

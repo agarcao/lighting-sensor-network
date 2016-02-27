@@ -53,7 +53,7 @@ void PersonNode::handleMessage(cMessage *msg)
         this->xCoor = (this->xCoor + ((rand() % 11) + (-5))) % field_x;
         this->yCoor = (this->yCoor + ((rand() % 11) + (-5))) % field_y;
 
-        ev << "Move to (" << this->xCoor << ", " <<  this->yCoor << ")" << endl;
+        ev << "Eu (Person Node #" << this->getIndex() << " ) Move to (" << this->xCoor << ", " <<  this->yCoor << ")" << endl;
 
         // Verificar se o nó com a nova posição está dentro do raio de deteção de algum sensor node
         cModule *personsPhysicalProcess = this->getParentModule()->getSubmodule("physicalProcess", 0);
@@ -71,10 +71,12 @@ void PersonNode::handleMessage(cMessage *msg)
         sprintf(s,"%d",this->yCoor);
         nodeDS.setTagArg("p",1,s);
 
-        ev << "Send NEW move message" << endl;
+        ev << "Eu (Person Node #" << this->getIndex() << " ) Send NEW move message" << endl;
         scheduleAt(simTime() + this->par("timeBetweenMoves"), this->event);
     }
 }
 
 void PersonNode::finish()
-{}
+{
+    cancelAndDelete(this->event);
+}

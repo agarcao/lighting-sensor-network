@@ -677,8 +677,15 @@ $O/node/resourceManager/ResourceManager.o: node/resourceManager/ResourceManager.
 	CastaliaMessages.h \
 	helpStructures/CastaliaModule.h \
 	helpStructures/DebugInfoWriter.h \
+	node/mobilityManager/VirtualMobilityManager.h \
 	node/resourceManager/ResourceManager.h \
-	node/resourceManager/ResourceManagerMessage_m.h
+	node/resourceManager/ResourceManagerMessage_m.h \
+	node/sensorManager/SensorManager.h \
+	node/sensorManager/SensorManagerMessage_m.h \
+	personNode/PersonNode.h \
+	physicalProcess/PhysicalProcessMessage_m.h \
+	physicalProcess/personsPhysicalProcess/PersonsPhysicalProcess.h \
+	wirelessChannel/WirelessChannelMessages_m.h
 $O/node/resourceManager/ResourceManagerMessage_m.o: node/resourceManager/ResourceManagerMessage_m.cc \
 	node/resourceManager/ResourceManagerMessage_m.h
 $O/node/sensorManager/SensorManager.o: node/sensorManager/SensorManager.cc \

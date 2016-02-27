@@ -11,6 +11,7 @@
  *******************************************************************************/
 
 #include "ResourceManager.h"
+#include "PersonsPhysicalProcess.h"
 
 Define_Module(ResourceManager);
 
@@ -196,12 +197,19 @@ void ResourceManager::changeLightIntensity(bool increase)
     {
         ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Light intensity gonna decrease" << endl;
         this->lightIntensity = 0;
-        displayString = "status/off";
+        displayString = "status/off_25";
     }
 
     // Put in GUI
     cDisplayString &nodeDS = getParentModule()->getDisplayString();
-    nodeDS.setTagArg("i",0,displayString.c_str());
+    nodeDS.setTagArg("i",0, displayString.c_str());
+
+    // TODO: Temos que fazer o update ao GUI
+    cModule *grandFatherNode = this->getParentModule()->getParentModule();
+    cModule *physicalProcess = grandFatherNode->getModuleByPath("SensorNetwork.physicalProcess[0]");
+    PersonsPhysicalProcess *ppp = check_and_cast<PersonsPhysicalProcess *>(physicalProcess);
+
+    ppp->updateGUI();
 
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Exiting changeLightIntensity function" << endl;
 }

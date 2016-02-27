@@ -10,6 +10,7 @@
  *                                                                             *  
  *******************************************************************************/
 
+#include <boost/lexical_cast.hpp>
 #include "SensorManager.h"
 
 Define_Module(SensorManager);
@@ -285,17 +286,24 @@ void SensorManager::detectedMovement()
 {
     Enter_Method_Silent("detectedMovement()");
 
+    cout << "Entro no detectedMovement\n";
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Sensor Manager Module] Movement detected. Entering in detectMovement function" << endl;
 
     // Tenho que mandar msg para a Application (onde está a logica do nó) p/ ele decidir o que fazer.
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Sensor Manager Module] We must send this information to the Application module. Sending..." << endl;
 
     // 1st - Build the sensor reading msg
-    string msg = "detectPersonBySensor#" + getParentModule()->getIndex();
+    ostringstream s;
+    s << "detectPersonBySensor#" << getParentModule()->getIndex();
+    string msg = s.str();
     SensorReadingMessage *sensorReadingMsg = new SensorReadingMessage(msg.c_str(), SENSOR_READING_MESSAGE);
+
+    cout << "[detectedMovement] Construi a msg\n";
 
     // 2st - Send to application
     send(sensorReadingMsg, "toApplicationModule");
+
+    cout << "[detectedMovement] Mandei a msg\n";
 
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Sensor Manager Module] Sensor Reading Msg sended." << endl;
 
@@ -333,7 +341,7 @@ void SensorManager::detectedMovement()
     // TODO: Broadcast the msg
     //send(this->broadCastMsg, "out");
 
-
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << "] Exiting detectMovement function" << endl;
+    cout << "[detectedMovement] Sai daqui\n";
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Sensor Manager Module] Exiting detectMovement function" << endl;
 }
 

@@ -69,6 +69,7 @@ void VirtualApplication::initialize()
 
 void VirtualApplication::handleMessage(cMessage * msg)
 {
+    cout << "Entro no handleMessage\n";
 	int msgKind = msg->getKind();
 
 	if (disabled && msgKind != NODE_STARTUP)
@@ -108,7 +109,9 @@ void VirtualApplication::handleMessage(cMessage * msg)
 
 		case SENSOR_READING_MESSAGE:
 		{
+		    cout << "Recebo a msg do detectedMovement na Application\n";
 			SensorReadingMessage *sensMsg = check_and_cast <SensorReadingMessage*>(msg);
+			cout << "Aqui ainda vou\n";
 			handleSensorReading(sensMsg);
 			break;
 		}
@@ -146,14 +149,7 @@ void VirtualApplication::handleMessage(cMessage * msg)
 
 		default:
 		{
-		    if(strcmp("diminishLightIntensity", msg->getName()) == 0)
-		    {
-		        handleSelfEvent();
-		    }
-		    else
-		    {
-		        opp_error("Application module received unexpected message");
-		    }
+            opp_error("Application module received unexpected message");
 		}
 	}
 

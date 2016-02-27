@@ -58,6 +58,9 @@ class PersonsPhysicalProcess: public CastaliaModule {
 
     // Function to check if Person is detect for any node
     void checkPersonNodeDetection(PersonNode *p);
+
+    // Function to update the GUI when a change occurs
+    void updateGUI();
 };
 
 #endif

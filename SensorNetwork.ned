@@ -40,7 +40,7 @@ network SensorNetwork {
     	wirelessChannel:wsn_lighting.wirelessChannel.WirelessChannel 
     	{
     	    parameters:
-    	        @display("i=block/circle_vs,blue;p=$field_x,-20;");
+    	        @display("i=block/circle_vs;p=$field_x,-20;");
     	 	gates:
         		toNode[numNodes];
         		fromNode[numNodes];
@@ -49,7 +49,7 @@ network SensorNetwork {
     	physicalProcess[numPhysicalProcesses]: <physicalProcessName> like wsn_lighting.physicalProcess.iPhysicalProcess
     	{
     	    parameters:
-    	        @display("i=block/circle_vs,blue;p=-20,-20;");
+    	        @display("i=block/circle_vs;p=-20,-20;");
     		gates:
         		toNode[numNodes];
         		fromNode[numNodes];
@@ -60,7 +60,7 @@ network SensorNetwork {
     	    parameters:
     	        sensor_radius = default(50);
     	        
-    	        @display("i=status/off,blue,0;is=vs;r=$sensor_radius,,#8080FF;p=50,50;");
+    	        @display("i=status/off_25;is=vs;r=$sensor_radius,,#8080FF;p=50,50;");
         	gates:
         		toPhysicalProcess[numPhysicalProcesses];
         		fromPhysicalProcess[numPhysicalProcesses];
@@ -72,7 +72,7 @@ network SensorNetwork {
     		    field_x = field_x;
     		    field_y = field_y;
     		    
-    	        @display("i=block/user_vs,blue;is=vs;");
+    	        @display("i=block/user_vs;is=vs;");
 	        gates:        		
         		toPhysicalProcess[numPhysicalProcesses];
     	}
