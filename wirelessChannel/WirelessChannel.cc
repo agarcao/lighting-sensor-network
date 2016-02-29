@@ -364,72 +364,86 @@ void WirelessChannel::handleMessage(cMessage * msg)
 			break;
 		}
 
-	case WC_SIGNAL_START:{
+	case WC_SIGNAL_START:
+	{
+	    ev << "[WirelessChannel::handleMessage] Receive WC_SIGNAL_START msg" << endl;
 
-			WirelessChannelSignalBegin *signalMsg =
-			    check_and_cast <WirelessChannelSignalBegin*>(msg);
-			int srcAddr = signalMsg->getNodeID();
-			int receptioncount = 0;
+        WirelessChannelSignalBegin *signalMsg =
+            check_and_cast <WirelessChannelSignalBegin*>(msg);
+        int srcAddr = signalMsg->getNodeID();
+        int receptioncount = 0;
 
-			/* Find the cell that the transmitting node resides */
-			int cellTx = nodeLocation[srcAddr].cell;
+        /* Find the cell that the transmitting node resides */
+        int cellTx = nodeLocation[srcAddr].cell;
 
-			/* Iterate through the list of cells that are affected
-			 * by cellTx and check if there are nodes there.
-			 * Update the nodesAffectedByTransmitter array
-			 */
-			list < PathLossElement * >::iterator it1;
-			for (it1 = pathLoss[cellTx].begin(); it1 != pathLoss[cellTx].end(); it1++) {
-				/* If no nodes exist in this cell, move on. */
-				if (cellOccupation[(*it1)->cellID].empty())
-					continue;
+        /* Iterate through the list of cells that are affected
+         * by cellTx and check if there are nodes there.
+         * Update the nodesAffectedByTransmitter array
+         */
+        list < PathLossElement * >::iterator it1;
+        for (it1 = pathLoss[cellTx].begin(); it1 != pathLoss[cellTx].end(); it1++)
+        {
+            ev << "[WirelessChannel::handleMessage] Entrei no ciclo" << endl;
 
-				/* Otherwise there are some nodes in that cell.
-				 * Calculate the signal received by these nodes
-				 * It is exactly the same for all of them.
-				 * The signal may be variable in time.
-				 */
-				float currentSignalReceived = signalMsg->getPower_dBm() - (*it1)->avgPathLoss;
-				if (temporalModelDefined) {
-					simtime_t timePassed_msec = (simTime() - (*it1)->lastObservationTime) * 1000;
-					simtime_t timeProcessed_msec =
-							temporalModel->runTemporalModel(SIMTIME_DBL(timePassed_msec),
-							&((*it1)->lastObservedDiffFromAvgPathLoss));
-					currentSignalReceived += (*it1)->lastObservedDiffFromAvgPathLoss;
-					collectHistogram("Fade depth distribution",
-						     (*it1)->lastObservedDiffFromAvgPathLoss);
-					/* Update the observation time */
-					(*it1)->lastObservationTime = simTime() -
-							(timePassed_msec - timeProcessed_msec) / 1000;
-				}
+            /* If no nodes exist in this cell, move on. */
+            if (cellOccupation[(*it1)->cellID].empty())
+                continue;
 
-				/* If the resulting current signal received is not strong enough,
-				 * to be delivered to the radio module, continue to the next cell.
-				 */
-				if (currentSignalReceived < signalDeliveryThreshold)
-					continue;
+            ev << "[WirelessChannel::handleMessage] Existe nós na cell #" << (*it1)->cellID << endl;
 
-				/* Else go through all the nodes of that cell.
-				 * Iterator it2 returns node IDs.
-				 */
-				list < int >::iterator it2;
-				for (it2 = cellOccupation[(*it1)->cellID].begin();
-						it2 != cellOccupation[(*it1)->cellID].end(); it2++) {
-					if (*it2 == srcAddr)
-						continue;
-					receptioncount++;
-					WirelessChannelSignalBegin *signalMsgCopy = signalMsg->dup();
-					signalMsgCopy->setPower_dBm(currentSignalReceived);
-					send(signalMsgCopy, "toNode", *it2);
-					nodesAffectedByTransmitter[srcAddr].push_front(*it2);
-				}	//for it2
-			}	//for it1
+            /* Otherwise there are some nodes in that cell.
+             * Calculate the signal received by these nodes
+             * It is exactly the same for all of them.
+             * The signal may be variable in time.
+             */
+            float currentSignalReceived = signalMsg->getPower_dBm() - (*it1)->avgPathLoss;
+            if (temporalModelDefined) {
+                simtime_t timePassed_msec = (simTime() - (*it1)->lastObservationTime) * 1000;
+                simtime_t timeProcessed_msec =
+                        temporalModel->runTemporalModel(SIMTIME_DBL(timePassed_msec),
+                        &((*it1)->lastObservedDiffFromAvgPathLoss));
+                currentSignalReceived += (*it1)->lastObservedDiffFromAvgPathLoss;
+                collectHistogram("Fade depth distribution",
+                         (*it1)->lastObservedDiffFromAvgPathLoss);
+                /* Update the observation time */
+                (*it1)->lastObservationTime = simTime() -
+                        (timePassed_msec - timeProcessed_msec) / 1000;
+            }
 
-			if (receptioncount > 0)
-				trace() << "signal from node[" << srcAddr << "] reached " <<
-						receptioncount << " other nodes";
-			break;
-		}
+            /* If the resulting current signal received is not strong enough,
+             * to be delivered to the radio module, continue to the next cell.
+             */
+            if (currentSignalReceived < signalDeliveryThreshold)
+                continue;
+
+            /* Else go through all the nodes of that cell.
+             * Iterator it2 returns node IDs.
+             */
+            list < int >::iterator it2;
+            for (it2 = cellOccupation[(*it1)->cellID].begin();
+                    it2 != cellOccupation[(*it1)->cellID].end(); it2++) {
+                if (*it2 == srcAddr)
+                    continue;
+                receptioncount++;
+                WirelessChannelSignalBegin *signalMsgCopy = signalMsg->dup();
+                signalMsgCopy->setPower_dBm(currentSignalReceived);
+                send(signalMsgCopy, "toNode", *it2);
+                nodesAffectedByTransmitter[srcAddr].push_front(*it2);
+
+                ev << "[WirelessChannel::handleMessage] Send para o node #" << (*it2) << endl;
+            }	//for it2
+        }	//for it1
+
+        if (receptioncount > 0)
+        {
+            trace() << "signal from node[" << srcAddr << "] reached " <<
+                    receptioncount << " other nodes";
+
+            ev << "[WirelessChannel::handleMessage] Retrasmited the packet" << endl;
+        }
+
+        break;
+	}
 
 	case WC_SIGNAL_END:{
 			WirelessChannelSignalEnd *signalMsg =

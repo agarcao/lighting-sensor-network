@@ -18,7 +18,7 @@ package wsn_lighting.wirelessChannel;
 
 simple WirelessChannel {
  parameters:
-	bool collectTraceInfo = default (false);
+	bool collectTraceInfo = default (true);
 	bool onlyStaticNodes = default (true);		// if NO mobility, set it to true for greater efficiency 
 
 	int xCellSize = default (5);		// if we define cells (to handle mobility)

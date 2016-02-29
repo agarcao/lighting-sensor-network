@@ -10,6 +10,9 @@ void WsnLogic::startup()
     randomBackoffIntervalFraction = genk_dblrand(0);
     sentOnce = false;
 
+    // Set node ID
+    this->self = this->getParentModule()->getIndex();
+
     this->timeToDiminishLightIntensity = par("timeToDiminishLightIntensity");
 
     //setTimer(REQUEST_SAMPLE, maxSampleInterval * randomBackoffIntervalFraction);
@@ -38,8 +41,6 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
 
 void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
 {
-    cout << "Entro no handleSensorReading\n";
-
     // TODO: Receive SensorReadingMsg and do things
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Enter handleSensorReading function" << endl;
 
@@ -65,6 +66,24 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
     setTimer(WsnLogicTimers::DIMINISH_LIGHT, this->timeToDiminishLightIntensity);
 
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Self event to diminish the light intensity schedule" << endl;
+
+    // TODO: 3rd - We need now to broadcast a msg to the neigboor nodes
+    WsnLogicData tmpData;
+    tmpData.nodeID = (unsigned short)this->self;
+    tmpData.locX = mobilityModule->getLocation().x;
+    tmpData.locY = mobilityModule->getLocation().y;
+
+    ostringstream s1;
+    s1 << "Broadcast msg from node #" << this->self;
+    msg = s1.str();
+
+    WsnLogicDataPacket *packet2Net = new WsnLogicDataPacket(msg.c_str(), APPLICATION_PACKET);
+    packet2Net->setExtraData(tmpData);
+    packet2Net->setSequenceNumber(this->currSentSampleSN);
+    this->currSentSampleSN++;
+
+    toNetworkLayer(packet2Net, SINK_NETWORK_ADDRESS);
+    this->sentOnce = true;
 
 
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Exiting handleSensorReading function" << endl;
