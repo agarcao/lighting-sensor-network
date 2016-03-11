@@ -24,7 +24,9 @@ void BypassMAC::fromNetworkLayer(cPacket * pkt, int destination)
 	encapsulatePacket(macFrame, pkt);
 	macFrame->setSource(SELF_MAC_ADDRESS);
 	macFrame->setDestination(destination);
+	ev << "send to radio layer the MAC_LAYER_PACKET" << endl;
 	toRadioLayer(macFrame);
+	ev << "send to radio layer the MAC_LAYER_PACKET" << endl;
 	toRadioLayer(createRadioCommand(SET_STATE, TX));
 }
 
@@ -40,9 +42,11 @@ void BypassMAC::fromRadioLayer(cPacket * pkt, double rssi, double lqi)
 	MacPacket *macPkt = dynamic_cast <MacPacket*>(pkt);
 	if (macPkt == NULL)
 		return;
+	ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::BypassMAC::fromRadioLayer] Cheguei aqui" << endl;
 	if (macPkt->getDestination() == SELF_MAC_ADDRESS ||
 	    macPkt->getDestination() == BROADCAST_MAC_ADDRESS)
 	{
+	    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::BypassMAC::fromRadioLayer] Vou enviar para o toNetworkLayer" << endl;
 		toNetworkLayer(decapsulatePacket(macPkt));
 	}
 }

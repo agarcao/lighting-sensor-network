@@ -366,7 +366,7 @@ void WirelessChannel::handleMessage(cMessage * msg)
 
 	case WC_SIGNAL_START:
 	{
-	    ev << "[WirelessChannel::handleMessage] Receive WC_SIGNAL_START msg" << endl;
+	    ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] Entramos aqui" << endl;
 
         WirelessChannelSignalBegin *signalMsg =
             check_and_cast <WirelessChannelSignalBegin*>(msg);
@@ -376,20 +376,26 @@ void WirelessChannel::handleMessage(cMessage * msg)
         /* Find the cell that the transmitting node resides */
         int cellTx = nodeLocation[srcAddr].cell;
 
+        ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] É o start começado pelo nó #" << srcAddr << " que está na cell #" << cellTx <<endl;
+
         /* Iterate through the list of cells that are affected
          * by cellTx and check if there are nodes there.
          * Update the nodesAffectedByTransmitter array
          */
+        ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] Vamos verificar que celulas devem receber o broadcast" << endl;
         list < PathLossElement * >::iterator it1;
         for (it1 = pathLoss[cellTx].begin(); it1 != pathLoss[cellTx].end(); it1++)
         {
-            ev << "[WirelessChannel::handleMessage] Entrei no ciclo" << endl;
+            ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] A verificar a cell #" << (*it1)->cellID << endl;
 
             /* If no nodes exist in this cell, move on. */
             if (cellOccupation[(*it1)->cellID].empty())
+            {
+                ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] Não existe nó nesta cell" << endl;
                 continue;
+            }
 
-            ev << "[WirelessChannel::handleMessage] Existe nós na cell #" << (*it1)->cellID << endl;
+            ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] Existe nó nesta cell" << endl;
 
             /* Otherwise there are some nodes in that cell.
              * Calculate the signal received by these nodes
@@ -413,24 +419,28 @@ void WirelessChannel::handleMessage(cMessage * msg)
             /* If the resulting current signal received is not strong enough,
              * to be delivered to the radio module, continue to the next cell.
              */
-            if (currentSignalReceived < signalDeliveryThreshold)
+            if (false)
                 continue;
 
             /* Else go through all the nodes of that cell.
              * Iterator it2 returns node IDs.
              */
+            ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] Vamos agora percorrer todos os nós da cell #"  << (*it1)->cellID << " (deve ser só 1)" << endl;
             list < int >::iterator it2;
             for (it2 = cellOccupation[(*it1)->cellID].begin();
                     it2 != cellOccupation[(*it1)->cellID].end(); it2++) {
                 if (*it2 == srcAddr)
+                {
+                    ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] O nó iterado é o mesmo que mandou o broadcast. Não enviamos" << endl;
                     continue;
+                }
                 receptioncount++;
                 WirelessChannelSignalBegin *signalMsgCopy = signalMsg->dup();
                 signalMsgCopy->setPower_dBm(currentSignalReceived);
                 send(signalMsgCopy, "toNode", *it2);
                 nodesAffectedByTransmitter[srcAddr].push_front(*it2);
 
-                ev << "[WirelessChannel::handleMessage] Send para o node #" << (*it2) << endl;
+                ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] Broadcast para o nó #" << *it2 << endl;
             }	//for it2
         }	//for it1
 
@@ -438,8 +448,6 @@ void WirelessChannel::handleMessage(cMessage * msg)
         {
             trace() << "signal from node[" << srcAddr << "] reached " <<
                     receptioncount << " other nodes";
-
-            ev << "[WirelessChannel::handleMessage] Retrasmited the packet" << endl;
         }
 
         break;

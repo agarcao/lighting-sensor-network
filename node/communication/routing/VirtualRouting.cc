@@ -54,10 +54,12 @@ void VirtualRouting::toMacLayer(cPacket * pkt, int destination)
 	RoutingPacket *netPacket = check_and_cast <RoutingPacket*>(pkt);
 	netPacket->getNetMacInfoExchange().nextHop = destination;
 	send(netPacket, "toMacModule");
+	ev << "send to mac layer" << endl;
 }
 
 void VirtualRouting::toApplicationLayer(cMessage * msg)
 {
+    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::VirtualMac::toNetworkLayer] Segue para a Application Module" << endl;
 	send(msg, "toCommunicationModule");
 }
 
@@ -103,6 +105,7 @@ void VirtualRouting::handleMessage(cMessage * msg)
 			break;
 		}
 
+		/** Packet that come from application */
 		case APPLICATION_PACKET:
 		{
 			ApplicationPacket *appPacket = check_and_cast <ApplicationPacket*>(msg);
@@ -114,6 +117,7 @@ void VirtualRouting::handleMessage(cMessage * msg)
 				break;
 			}
 			trace() << "Received [" << appPacket->getName() << "] from application layer";
+			ev << "Received [" << appPacket->getName() << "] from application layer" << endl;
 
 			/* Control is now passed to a specific routing protocol by calling fromApplicationLayer()
 			 * Notice that after the call we RETURN (not BREAK) so that the packet is not deleted.
@@ -125,8 +129,10 @@ void VirtualRouting::handleMessage(cMessage * msg)
 			return;
 		}
 
+		/** Packet from network. Let's pass to the application */
 		case NETWORK_LAYER_PACKET:
 		{
+		    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::VirtualRouting::handleMessage::NETWORK_LAYER_PACKET] Recebi msg do MAC" << endl;
 			RoutingPacket *netPacket = check_and_cast <RoutingPacket*>(msg);
 			trace() << "Received [" << netPacket->getName() << "] from MAC layer";
 			NetMacInfoExchange_type info = netPacket->getNetMacInfoExchange();
@@ -137,6 +143,7 @@ void VirtualRouting::handleMessage(cMessage * msg)
 			 * by fromMacLayer(), i.e., the normal/expected action.
 			 */
 			fromMacLayer(netPacket, info.lastHop, info.RSSI, info.LQI);
+			ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::VirtualRouting::handleMessage::NETWORK_LAYER_PACKET] Fim de tratar msg" << endl;
 			break;
 		}
 

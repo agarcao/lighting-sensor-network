@@ -33,6 +33,7 @@ void WsnLogic::timerFiredCallback(int index)
 void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
          const char *source, double rssi, double lqi)
 {
+    ev << "[Node #" << this->getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Chego até aqui" << endl;
     WsnLogicDataPacket *rcvPacket = check_and_cast<WsnLogicDataPacket*>(genericPacket);
     WsnLogicData theData = rcvPacket->getExtraData();
     if (isSink)
@@ -82,7 +83,7 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
     packet2Net->setSequenceNumber(this->currSentSampleSN);
     this->currSentSampleSN++;
 
-    toNetworkLayer(packet2Net, SINK_NETWORK_ADDRESS);
+    toNetworkLayer(packet2Net, BROADCAST_NETWORK_ADDRESS);
     this->sentOnce = true;
 
 

@@ -89,6 +89,7 @@ void VirtualApplication::handleMessage(cMessage * msg)
 
 		case APPLICATION_PACKET:
 		{
+		    ev << "[Node #" << this->getParentModule()->getIndex() << "::VirtualApplication::handleMessage::APPLICATION_PACKET] Recebi msg do modulo de comunicação" << endl;
 			ApplicationPacket *rcvPacket = check_and_cast <ApplicationPacket*>(msg);
 			AppNetInfoExchange_type info = rcvPacket->getAppNetInfoExchange();
 			// If the packet has the correct appID OR the appID is the empty string,
@@ -98,6 +99,7 @@ void VirtualApplication::handleMessage(cMessage * msg)
 				if (latencyMax > 0 && latencyBuckets > 0)
 					collectHistogram("Application level latency, in ms", 1000 * SIMTIME_DBL(simTime() - info.timestamp));
 			}
+			ev << "[Node #" << this->getParentModule()->getIndex() << "::VirtualApplication::handleMessage::APPLICATION_PACKET] Fim de tratar msg" << endl;
 			break;
 		}
 
@@ -206,6 +208,8 @@ void VirtualApplication::toNetworkLayer(cPacket * pkt, const char *dst)
 	if (packetHeaderOverhead > 0) size += packetHeaderOverhead;
 	trace() << "Sending [" << appPkt->getName() << "] of size " <<
 		size << " bytes to communication layer";
+	ev << "Sending [" << appPkt->getName() << "] of size " <<
+	        size << " bytes to communication layer" << endl;
 	appPkt->setByteLength(size);
 	send(appPkt, "toCommunicationModule");
 }

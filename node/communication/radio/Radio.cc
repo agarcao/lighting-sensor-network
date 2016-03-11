@@ -57,15 +57,19 @@ void Radio::handleMessage(cMessage * msg)
 		 * New signal message from wireless channel.
 		 *********************************************/
 		case WC_SIGNAL_START:{
+		    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_START] Recebi msg do WirelessChannel" << endl;
 
 			WirelessChannelSignalBegin *wcMsg = check_and_cast<WirelessChannelSignalBegin*>(msg);
 			trace() << "START signal from node " << wcMsg->getNodeID() << " , received power " << wcMsg->getPower_dBm() << "dBm" ;
+			ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_START] O signal vem do nó #" << wcMsg->getNodeID() << endl;
 
 			/* If the carrier frequency does not match, it is as if we are not receiving it.
 			 * In the future, depending on carrierFreq and bandwidth, we can decide to include
 			 * the signal in the received signals list with reduced (spill over) power
 			 */
 			if (wcMsg->getCarrierFreq() != carrierFreq){
+			    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_START] START signal ignored, different carrier freq >> a nossa #"
+			            << carrierFreq << " a da msg #" << wcMsg->getCarrierFreq() << endl;
 				trace() << "START signal ignored, different carrier freq";
 				break;
 			}
@@ -83,6 +87,7 @@ void Radio::handleMessage(cMessage * msg)
 				receivedSignals.push_front(newSignal);
 				stats.RxFailedNoRxState++;
 				trace() << "Failed packet (WC_SIGNAL_START) from node " << newSignal.ID << ", radio not in RX state";
+				ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_START] Falho porque o radio não está no estado RX" << endl;
 				break;	// exit case WC_SIGNAL_START
 			}
 
@@ -161,6 +166,8 @@ void Radio::handleMessage(cMessage * msg)
 
 			timeOfLastSignalChange = simTime();
 
+			ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_START] Fim de tratar msg" << endl;
+
 			break;
 		}
 
@@ -168,6 +175,7 @@ void Radio::handleMessage(cMessage * msg)
 		 * End signal message from wireless channel.
 		 ***************************************************/
 		case WC_SIGNAL_END:{
+		    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_END] Recebi msg do WirelessChannel" << endl;
 
 			WirelessChannelSignalEnd *wcMsg = check_and_cast<WirelessChannelSignalEnd*>(msg);
 			int signalID = wcMsg->getNodeID();
@@ -176,7 +184,10 @@ void Radio::handleMessage(cMessage * msg)
 			list<ReceivedSignal_type>::iterator endingSignal;
 			for (endingSignal = receivedSignals.begin(); endingSignal != receivedSignals.end(); endingSignal++) {
 				if (endingSignal->ID == signalID)
+				{
+				    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_END] Encontramos o signal" << endl;
 					break;
+				}
 			}
 
 			/* If we do not find the signal ID in our list of received signals
@@ -184,6 +195,7 @@ void Radio::handleMessage(cMessage * msg)
 			 * frequency change. We can ignore the signal.
 			 */
 			if (endingSignal == receivedSignals.end()){
+			    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_END] Não encontramos o signal na lista" << endl;
 				trace() << "END signal ingnored: No matching start signal, probably due to carrier freq change";
 				break;	// exit case WC_SIGNAL_END
 			}
@@ -192,6 +204,7 @@ void Radio::handleMessage(cMessage * msg)
 			 * delete the corresponding signal from the received signals list
 			 */
 			if ((state != RX) || (changingToState != -1)) {
+			    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_END] Nao esta no estado certo" << endl;
 				if (endingSignal->bitErrors != ALL_ERRORS) {
 					stats.RxFailedNoRxState++;
 					trace() << "Failed packet (WC_SIGNAL_END) from node " << signalID << ", no RX state";
@@ -223,9 +236,17 @@ void Radio::handleMessage(cMessage * msg)
 			updateTotalPowerReceived(endingSignal);
 			timeOfLastSignalChange = simTime();
 
+			// Retirar depois de perceber como os biterrors funcionam
+			endingSignal->bitErrors=0;
+
 			// use bit errors and encoding type to determine if the packet is received
+			ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_END] Tenho erros? bitErrors #" << endingSignal->bitErrors << endl;
 			if (endingSignal->bitErrors != ALL_ERRORS) {
+			    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex()
+			            << "::radio::handleMessage::WC_SIGNAL_END] VendingSignal->bitErrors <= maxErrorsAllowed(endingSignal->encoding) :: "
+			            << endingSignal->bitErrors << " || " << maxErrorsAllowed(endingSignal->encoding) << endl;
 				if (endingSignal->bitErrors <= maxErrorsAllowed(endingSignal->encoding)) {
+				    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_END] Vou mandar p/ cima" << endl;
 					// decapsulate the packet and add the RSSI and LQI fields
 					MacPacket *macPkt = check_and_cast<MacPacket*>(wcMsg->decapsulate());
 					macPkt->getMacRadioInfoExchange().RSSI = readRSSI();
@@ -254,6 +275,8 @@ void Radio::handleMessage(cMessage * msg)
 			}
 
 			receivedSignals.erase(endingSignal);
+
+			ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::radio::handleMessage::WC_SIGNAL_END] Fim de tratar msg" << endl;
 
 			break;
 		}
@@ -320,6 +343,7 @@ void Radio::handleMessage(cMessage * msg)
 
 			if ((int)radioBuffer.size() < bufferSize) {
 				trace() << "Buffered [" << macPkt->getName() << "] from MAC layer";
+				ev << "Buffered [" << macPkt->getName() << "] from MAC layer" << endl;
 				radioBuffer.push(macPkt);
 				// we use return instead of break that leads to message deletion at the end
 				// to avoid unnecessary message duplication

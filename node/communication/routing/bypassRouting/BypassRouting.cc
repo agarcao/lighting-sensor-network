@@ -39,11 +39,17 @@ void BypassRouting::fromApplicationLayer(cPacket * pkt, const char *destination)
 void BypassRouting::fromMacLayer(cPacket * pkt, int srcMacAddress, double rssi, double lqi)
 {
 	RoutingPacket *netPacket = dynamic_cast <RoutingPacket*>(pkt);
+    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::BypassRouting::fromMacLayer] Cheguei aqui" << endl;
+
 	if (netPacket) {
 		string destination(netPacket->getDestination());
-		if (destination.compare(SELF_NETWORK_ADDRESS) == 0 ||
-		    destination.compare(BROADCAST_NETWORK_ADDRESS) == 0)
+		ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::BypassRouting::fromMacLayer] Ainda chego aqui onde destination #"
+		        << destination << endl;;
+		if (destination.compare(SELF_NETWORK_ADDRESS) == 0 || destination.compare(BROADCAST_NETWORK_ADDRESS) == 0)
+		{
+		    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::BypassRouting::fromMacLayer] Vou enviar para o toApplicationLayer" << endl;
 			toApplicationLayer(decapsulatePacket(pkt));
+		}
 	}
 }
 

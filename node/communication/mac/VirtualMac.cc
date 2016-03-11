@@ -84,6 +84,7 @@ void VirtualMac::handleMessage(cMessage * msg)
 			break;
 		}
 
+		/** Packet that come from application (from routing component) */
 		case NETWORK_LAYER_PACKET:{
 			RoutingPacket *pkt = check_and_cast <RoutingPacket*>(msg);
 			if (macMaxFrameSize > 0 && macMaxFrameSize < pkt->getByteLength() + macFrameOverhead) {
@@ -102,7 +103,9 @@ void VirtualMac::handleMessage(cMessage * msg)
 			return;
 		}
 
+		/** Packet that come from lower layer (from radio component) */
 		case MAC_LAYER_PACKET:{
+		    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::virtualMac::handleMessage::MAC_LAYER_PACKET] Recebi msg do Radio" << endl;
 			MacPacket *pkt = check_and_cast <MacPacket*>(msg);
 			/* Control is now passed to a specific routing protocol by calling fromRadioLayer()
 			 * Notice that after the call we BREAK so that the MAC packet gets deleted.
@@ -111,6 +114,8 @@ void VirtualMac::handleMessage(cMessage * msg)
 			 */
 			fromRadioLayer(pkt, pkt->getMacRadioInfoExchange().RSSI,
 								pkt->getMacRadioInfoExchange().LQI);
+
+			ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::virtualMac::handleMessage::MAC_LAYER_PACKET] Fim de tratar msg" << endl;
 			break;
 		}
 
@@ -165,6 +170,7 @@ void VirtualMac::finish()
 
 void VirtualMac::toNetworkLayer(cMessage * macMsg)
 {
+    ev << "[Node #" << this->getParentModule()->getParentModule()->getIndex() << "::VirtualMac::toNetworkLayer] Segue para o Routing Module" << endl;
 	trace() << "Delivering [" << macMsg->getName() << "] to Network layer";
 	send(macMsg, "toNetworkModule");
 }

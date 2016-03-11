@@ -34,7 +34,7 @@ simple Radio {
 
 	double carrierFreq = default (2400.0);	// the carrier frequency (in MHz) to begin with.
 
-	int collisionModel = default (2);	// 0-> No interference
+	int collisionModel = default (0);	// 0-> No interference
 										// 1-> Simple interference
 										// 2-> Additive interefence
 										// 3-> Advanced interference (not implemented)
