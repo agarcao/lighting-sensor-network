@@ -23,6 +23,7 @@ struct WsnLogicData {
 	unsigned short nodeID;	//the ID of the Node
 	double locX;			// x-coordinate of the node
 	double locY;			// y-coordinate of the node
+	int hop;				// msg hop number in the network
 } 
 
 packet WsnLogicDataPacket extends ApplicationPacket {

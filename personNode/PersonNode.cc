@@ -19,7 +19,7 @@ void PersonNode::initialize()
     //this->yCoor = rand() % field_y;
 
     this->xCoor = 15;
-    this->yCoor = 112;
+    this->yCoor = 15;
 
     ev << "Eu (Person Node #" << this->getIndex() << " ) inicializei-me na posição ("
             << this->xCoor << ", " << this->yCoor << ")" << endl;

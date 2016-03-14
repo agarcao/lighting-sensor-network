@@ -30,6 +30,7 @@ simple WsnLogic like wsn_lighting.node.application.iApplication {
 	bool isSink = default (false);
 
 	int timeToDiminishLightIntensity = default(50); // Time (in msec) for light to diminish its intensity
+	int broadcastMsgHops = default(2); 				// Hop number of broadcasts msg in the network
  gates:
  	output toCommunicationModule;
 	output toSensorDeviceManager;

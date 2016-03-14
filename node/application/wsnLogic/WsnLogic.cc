@@ -14,6 +14,7 @@ void WsnLogic::startup()
     this->self = this->getParentModule()->getIndex();
 
     this->timeToDiminishLightIntensity = par("timeToDiminishLightIntensity");
+    this->broadcastMsgHops = par("broadcastMsgHops");
 
     //setTimer(REQUEST_SAMPLE, maxSampleInterval * randomBackoffIntervalFraction);
 }
@@ -33,11 +34,66 @@ void WsnLogic::timerFiredCallback(int index)
 void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
          const char *source, double rssi, double lqi)
 {
-    ev << "[Node #" << this->getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Chego até aqui" << endl;
+    // Recebemos um broadcast, vamos acender a luz e ver se temos que fazer broadcast novamente
+    ev << "[Node #" << this->getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Recebemos um broadcast para acender a luz" << endl;
     WsnLogicDataPacket *rcvPacket = check_and_cast<WsnLogicDataPacket*>(genericPacket);
     WsnLogicData theData = rcvPacket->getExtraData();
-    if (isSink)
-        trace() << "Sink received from: " << theData.nodeID << " \tvalue=" << rcvPacket->getData();
+
+    // Em 1º lugar temos de acender a luz (caso ele ainda n tiver acesa) e renovar o timer que apaga a luz
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] We must send msg to Resource Module to set the light up" << endl;
+
+    ostringstream s;
+    s << "increaseLightSensor#" << getParentModule()->getIndex();
+    string msg = s.str();
+    ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
+    resourceManagerMsg->setIncreaseLightIntensity(true);
+
+    //// Send the msg to Resource
+    send(resourceManagerMsg, "toResourceManager");
+
+    // 2nd - We must now create a self event to decrease the light intensity
+    //// Cancel and Delete the self event (this way we dont need to check if event is already create or not
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Cancel the diminish light event" << endl;
+
+    cancelTimer(WsnLogicTimers::DIMINISH_LIGHT);
+
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Create a new self event to diminish the light intensity" << endl;
+
+    //// Set new timer
+    setTimer(WsnLogicTimers::DIMINISH_LIGHT, this->timeToDiminishLightIntensity);
+
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Self event to diminish the light intensity schedule" << endl;
+
+    // We now need to see if broadcast again or not
+    int hopCounter = theData.hop;
+
+    //// We decrement the counter
+    hopCounter--;
+
+    //// If hopCounter != 0 we broadcast again
+    if (hopCounter)
+    {
+        ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] We are going broadcast the msg receive because hopCounter = "<< hopCounter << endl;
+        WsnLogicData tmpData;
+        tmpData.nodeID = theData.nodeID;
+        tmpData.locX = theData.locX;
+        tmpData.locY = theData.locY;
+        tmpData.hop = hopCounter;
+
+        WsnLogicDataPacket *tmpPacket = rcvPacket->dup();
+        tmpPacket->setExtraData(tmpData);
+
+        toNetworkLayer(tmpPacket, BROADCAST_NETWORK_ADDRESS);
+        this->sentOnce = true;
+
+        ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] End broadcasting the broadMsg" << endl;
+    }
+    else
+    {
+        ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] We don't broadcast the broadcast msg because hop is 0" << endl;
+    }
+
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Exiting handleSensorReading function" << endl;
 }
 
 void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
@@ -73,6 +129,7 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
     tmpData.nodeID = (unsigned short)this->self;
     tmpData.locX = mobilityModule->getLocation().x;
     tmpData.locY = mobilityModule->getLocation().y;
+    tmpData.hop = this->broadcastMsgHops;
 
     ostringstream s1;
     s1 << "Broadcast msg from node #" << this->self;

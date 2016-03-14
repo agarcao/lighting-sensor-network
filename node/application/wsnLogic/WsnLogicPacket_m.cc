@@ -58,6 +58,7 @@ WsnLogicData::WsnLogicData()
     nodeID = 0;
     locX = 0;
     locY = 0;
+    hop = 0;
 }
 
 void doPacking(cCommBuffer *b, WsnLogicData& a)
@@ -65,6 +66,7 @@ void doPacking(cCommBuffer *b, WsnLogicData& a)
     doPacking(b,a.nodeID);
     doPacking(b,a.locX);
     doPacking(b,a.locY);
+    doPacking(b,a.hop);
 }
 
 void doUnpacking(cCommBuffer *b, WsnLogicData& a)
@@ -72,6 +74,7 @@ void doUnpacking(cCommBuffer *b, WsnLogicData& a)
     doUnpacking(b,a.nodeID);
     doUnpacking(b,a.locX);
     doUnpacking(b,a.locY);
+    doUnpacking(b,a.hop);
 }
 
 class WsnLogicDataDescriptor : public cClassDescriptor
@@ -121,7 +124,7 @@ const char *WsnLogicDataDescriptor::getProperty(const char *propertyname) const
 int WsnLogicDataDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 3+basedesc->getFieldCount(object) : 3;
+    return basedesc ? 4+basedesc->getFieldCount(object) : 4;
 }
 
 unsigned int WsnLogicDataDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -136,8 +139,9 @@ unsigned int WsnLogicDataDescriptor::getFieldTypeFlags(void *object, int field) 
         FD_ISEDITABLE,
         FD_ISEDITABLE,
         FD_ISEDITABLE,
+        FD_ISEDITABLE,
     };
-    return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<4) ? fieldTypeFlags[field] : 0;
 }
 
 const char *WsnLogicDataDescriptor::getFieldName(void *object, int field) const
@@ -152,8 +156,9 @@ const char *WsnLogicDataDescriptor::getFieldName(void *object, int field) const
         "nodeID",
         "locX",
         "locY",
+        "hop",
     };
-    return (field>=0 && field<3) ? fieldNames[field] : NULL;
+    return (field>=0 && field<4) ? fieldNames[field] : NULL;
 }
 
 int WsnLogicDataDescriptor::findField(void *object, const char *fieldName) const
@@ -163,6 +168,7 @@ int WsnLogicDataDescriptor::findField(void *object, const char *fieldName) const
     if (fieldName[0]=='n' && strcmp(fieldName, "nodeID")==0) return base+0;
     if (fieldName[0]=='l' && strcmp(fieldName, "locX")==0) return base+1;
     if (fieldName[0]=='l' && strcmp(fieldName, "locY")==0) return base+2;
+    if (fieldName[0]=='h' && strcmp(fieldName, "hop")==0) return base+3;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -178,8 +184,9 @@ const char *WsnLogicDataDescriptor::getFieldTypeString(void *object, int field) 
         "unsigned short",
         "double",
         "double",
+        "int",
     };
-    return (field>=0 && field<3) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<4) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *WsnLogicDataDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -222,6 +229,7 @@ std::string WsnLogicDataDescriptor::getFieldAsString(void *object, int field, in
         case 0: return ulong2string(pp->nodeID);
         case 1: return double2string(pp->locX);
         case 2: return double2string(pp->locY);
+        case 3: return long2string(pp->hop);
         default: return "";
     }
 }
@@ -239,6 +247,7 @@ bool WsnLogicDataDescriptor::setFieldAsString(void *object, int field, int i, co
         case 0: pp->nodeID = string2ulong(value); return true;
         case 1: pp->locX = string2double(value); return true;
         case 2: pp->locY = string2double(value); return true;
+        case 3: pp->hop = string2long(value); return true;
         default: return false;
     }
 }

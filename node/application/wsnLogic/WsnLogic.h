@@ -13,6 +13,7 @@ enum WsnLogicTimers {
 class WsnLogic: public VirtualApplication {
  private:
     int timeToDiminishLightIntensity;   // Time (in msec) for light to diminish its intensity
+    int broadcastMsgHops;               // Hop number of broadcasts msg in the network
 
     double maxSampleInterval;
     double minSampleInterval;
