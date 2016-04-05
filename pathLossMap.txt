@@ -1,0 +1,6 @@
+# example: 0>1:56,2:40,3:59,4:54,5:58
+# This means that when node 0 is transmitting, node 1 is experiencing 56dB path loss, node 2 is experiencing 40dB loss, node 3 a 59dBm loss, etc.
+0>1:0,2:0,3:0
+1>0:0,2:0,3:0
+2>0:0,1:0,3:0
+3>0:0,1:0,2:0

@@ -30,7 +30,11 @@ simple WsnLogic like wsn_lighting.node.application.iApplication {
 	bool isSink = default (false);
 
 	int timeToDiminishLightIntensity = default(50); // Time (in msec) for light to diminish its intensity
-	int broadcastMsgHops = default(2); 				// Hop number of broadcasts msg in the network
+	
+	// This configuration came from .ini
+	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+   	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
+	
  gates:
  	output toCommunicationModule;
 	output toSensorDeviceManager;

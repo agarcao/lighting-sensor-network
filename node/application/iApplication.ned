@@ -22,6 +22,9 @@ moduleinterface iApplication {
     	int priority;
     	int packetHeaderOverhead;	// in bytes
     	int constantDataPayload;	// in bytes
+    	
+    	bool coneLightingIsActive;
+    	int radiousLighting;
     
      gates: 
      	output toCommunicationModule;

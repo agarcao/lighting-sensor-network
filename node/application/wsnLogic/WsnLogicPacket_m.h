@@ -25,9 +25,10 @@
 struct WsnLogicData
 {
     WsnLogicData();
-    unsigned short nodeID;
-    double locX;
-    double locY;
+    unsigned short type;
+    unsigned short originNodeID;
+    unsigned short senderNodeID;
+    unsigned short destinationNodesID;
     int hop;
 };
 
@@ -35,7 +36,7 @@ void doPacking(cCommBuffer *b, WsnLogicData& a);
 void doUnpacking(cCommBuffer *b, WsnLogicData& a);
 
 /**
- * Class generated from <tt>node/application/wsnLogic/WsnLogicPacket.msg:29</tt> by nedtool.
+ * Class generated from <tt>node/application/wsnLogic/WsnLogicPacket.msg:30</tt> by nedtool.
  * <pre>
  * packet WsnLogicDataPacket extends ApplicationPacket
  * {

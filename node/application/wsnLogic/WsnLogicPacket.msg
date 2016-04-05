@@ -20,10 +20,11 @@ cplusplus {{
 class ApplicationPacket;
 
 struct WsnLogicData {
-	unsigned short nodeID;	//the ID of the Node
-	double locX;			// x-coordinate of the node
-	double locY;			// y-coordinate of the node
-	int hop;				// msg hop number in the network
+    unsigned short type;				// message type (could be ONLY_LIGHT_RADIOUS, ONLY_LIGHT_CONE or LIGHT_RADIOUS_CONE)
+    unsigned short originNodeID;		// Node ID from where the msg is originated from
+	unsigned short senderNodeID;		// Node ID from the sender node
+	unsigned short* destinationNodesID;	// List of Node ID's that are the destination of the message. All the others discard the msg
+	int hop;							// msg hop number in the network
 } 
 
 packet WsnLogicDataPacket extends ApplicationPacket {

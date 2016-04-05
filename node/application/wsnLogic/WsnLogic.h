@@ -10,10 +10,15 @@ enum WsnLogicTimers {
     DIMINISH_LIGHT = 1
 };
 
+enum WSNLogicMessageTypes {
+    ONLY_LIGHT_RADIOUS = 1,
+    ONLY_LIGHT_CONE = 2,
+    LIGHT_RADIOUS_CONE = 3
+};
+
 class WsnLogic: public VirtualApplication {
  private:
     int timeToDiminishLightIntensity;   // Time (in msec) for light to diminish its intensity
-    int broadcastMsgHops;               // Hop number of broadcasts msg in the network
 
     double maxSampleInterval;
     double minSampleInterval;
@@ -24,6 +29,10 @@ class WsnLogic: public VirtualApplication {
 
     double randomBackoffIntervalFraction;
     bool sentOnce;
+
+    // This values came from .ini
+    bool coneLightingIsActive;  // Tell if we must create a cone of lighting when we detect a person
+    int radiousLighting;        // Tell us how many neighbors nodes must be also turn on when a person is detected
 
  protected:
     void startup();

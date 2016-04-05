@@ -32,7 +32,12 @@ module Node {
     	string ApplicationName = default ("WsnLogic");		//the name of the implemented Application Module
     	string MobilityManagerName = default ("NoMobilityManager");	//the name of the implemented Mobility Module
     	
+    	// This config came from SensorNetwork.ned
     	int sensor_radius;
+    	
+    	// This configuration came from .ini
+    	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+    	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
  	gates:
     	output toWirelessChannel;
     	output toPhysicalProcess[];
