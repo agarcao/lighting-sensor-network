@@ -36,6 +36,10 @@ simple BridgeTest like wsn_lighting.node.application.iApplication {
 	int reprogramPacketDelay = default (500);	// in ms
 	int reprogramPayload = default (5120);	// in bytes
 	int maxPayloadPacketSize = default (128);	// in bytes
+	
+	// This configuration came from .ini
+	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+   	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
 
  gates:
  	output toCommunicationModule;

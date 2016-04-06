@@ -33,6 +33,10 @@ simple ThroughputTest like wsn_lighting.node.application.iApplication {
 
 	double latencyHistogramMax = default (200);
 	int latencyHistogramBuckets = default (10);
+	
+	// This configuration came from .ini
+	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+   	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
 
  gates:
  	output toCommunicationModule;

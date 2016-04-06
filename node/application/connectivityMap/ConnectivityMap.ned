@@ -26,6 +26,10 @@ simple ConnectivityMap like wsn_lighting.node.application.iApplication {
 	int packetSpacing = default (100);	// in ms
 	int packetsPerNode = default (100);
 	int packetSize = default (32);	// in bytes
+	
+	// This configuration came from .ini
+	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+   	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
 
  gates:
  	output toCommunicationModule;

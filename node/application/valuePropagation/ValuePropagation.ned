@@ -23,6 +23,10 @@ simple ValuePropagation like wsn_lighting.node.application.iApplication {
 	int packetHeaderOverhead = default (8);	// in bytes
 	int constantDataPayload = default (2);	// in bytes
 	double tempThreshold = default (15.0);
+	
+	// This configuration came from .ini
+	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+   	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
 
  gates:
  	output toCommunicationModule;

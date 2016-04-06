@@ -26,6 +26,9 @@ simple ValueReporting like wsn_lighting.node.application.iApplication {
 	int minSampleInterval = default (1000);	// in msec
 	bool isSink = default (false);
 
+	// This configuration came from .ini
+	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+   	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
  gates:
  	output toCommunicationModule;
 	output toSensorDeviceManager;

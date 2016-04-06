@@ -25,8 +25,8 @@ network SensorNetwork {
     	string physicalProcessName = default ("PersonsPhysicalProcess");
     	string debugInfoFileName = default ("Castalia-Trace.txt");
     	
-    	int horizontal_cells = default(2);
-    	int vertical_cells = default(2);
+    	int horizontal_cells = default(4);
+    	int vertical_cells = default(4);
     	int cell_size = default(75);
     	
     	// Argumentos necessários para a criação do mapa

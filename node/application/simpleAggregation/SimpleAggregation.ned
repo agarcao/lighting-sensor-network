@@ -24,6 +24,10 @@ simple SimpleAggregation like wsn_lighting.node.application.iApplication {
 	int constantDataPayload = default (2);	// in bytes
 	int sampleInterval = default (1000);	// in ms
 	bool isSink = default (false);
+	
+	// This configuration came from .ini
+	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
+   	int radiousLighting;		// Tell us how many neighboor nodes must be also turn on when a person is detected
 
  gates:
  	output toCommunicationModule;
