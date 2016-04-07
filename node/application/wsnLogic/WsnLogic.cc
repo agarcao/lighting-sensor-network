@@ -102,6 +102,8 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
         }
         case WSNLogicMessageTypes::ONLY_LIGHT_CONE:
         {
+            /** Neste caso recebemos uma broadcast onde o objectivo é criar o cone de ilumninação */
+            // TODO: 1º - Verificar se estamos à espera de u
             break;
         }
         case WSNLogicMessageTypes::LIGHT_RADIOUS_CONE:
@@ -110,7 +112,7 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
         }
         default:
         {
-
+            opp_error("Broadcast came without any know type");
         }
     }
 

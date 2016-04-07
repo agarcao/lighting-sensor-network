@@ -14,6 +14,19 @@ void PersonNode::initialize()
     int field_x = this->par("field_x");
     int field_y = this->par("field_y");
 
+    // Parametros que vêm do modulo
+    this->timeBetweenMoves = par("timeBetweenMoves");
+    this->moveVelocity = par("moveVelocity");
+    this->changeDirectionProbability = par("changeDirectionProbability");
+
+    int directionInt = this->checkDirection(par("startDirection"));
+    if (directionInt) {
+        this->movementDirection = directionInt;
+    }
+    else {
+        opp_error("Movement direction of the node is not valid");
+    }
+
     // Random Values for initial Person position on the map
     this->xCoor = rand() % field_x;
     this->yCoor = rand() % field_y;
@@ -53,8 +66,10 @@ void PersonNode::handleMessage(cMessage *msg)
         int field_y = this->par("field_y");
 
         // Mudamos a posição da pessoa (person node)
-        this->xCoor = (this->xCoor + ((rand() % 11) + (-5))) % field_x;
-        this->yCoor = (this->yCoor + ((rand() % 11) + (-5))) % field_y;
+        int direction = this->changeDirection();
+
+        this->xCoor = (this->xCoor + (this->getDirectionX(direction) * this->moveVelocity)) % field_x;
+        this->yCoor = (this->yCoor + (this->getDirectionY(direction) * this->moveVelocity)) % field_y;
 
         ev << "Eu (Person Node #" << this->getIndex() << " ) Move to (" << this->xCoor << ", " <<  this->yCoor << ")" << endl;
 
@@ -82,4 +97,85 @@ void PersonNode::handleMessage(cMessage *msg)
 void PersonNode::finish()
 {
     cancelAndDelete(this->event);
+}
+
+// Helpers Functions
+int PersonNode::checkDirection(string movementDirection)
+{
+    if(movementDirection == "North"){
+        return PersonMovementDirections::NORTH;
+    }
+    else if(movementDirection == "East"){
+        return PersonMovementDirections::EAST;
+    }
+    else if(movementDirection == "South"){
+        return PersonMovementDirections::SOUTH;
+    }
+    else if(movementDirection == "West"){
+        return PersonMovementDirections::WEST;
+    }
+    return 0;
+}
+
+int PersonNode::changeDirection()
+{
+    bool trueOrFalse = (rand() % 100) > (100 - (this->changeDirectionProbability * 100));
+    int directions[4] = {PersonMovementDirections::NORTH, PersonMovementDirections::EAST, PersonMovementDirections::SOUTH, PersonMovementDirections::WEST};
+
+
+    // Se for para mudar
+    if (trueOrFalse)
+    {
+        int randomNumber = rand() % 4;
+        int direction = directions[randomNumber];
+        if (direction != this->movementDirection) {
+            return direction;
+        }
+        else {
+            return directions[(randomNumber + 1) % 4];
+        }
+    }
+    else {
+        return this->movementDirection;
+    }
+}
+
+int PersonNode::getDirectionX(int direction)
+{
+    switch (direction)
+    {
+        case PersonMovementDirections::EAST:
+        {
+            return 1;
+        }
+        case PersonMovementDirections::WEST:
+        {
+            return -1;
+        }
+        case PersonMovementDirections::NORTH:
+        case PersonMovementDirections::SOUTH:
+        {
+            return 0;
+        }
+    }
+}
+
+int PersonNode::getDirectionY(int direction)
+{
+    switch (direction)
+    {
+        case PersonMovementDirections::NORTH:
+        {
+            return 1;
+        }
+        case PersonMovementDirections::SOUTH:
+        {
+            return -1;
+        }
+        case PersonMovementDirections::EAST:
+        case PersonMovementDirections::WEST:
+        {
+            return 0;
+        }
+    }
 }

@@ -35,7 +35,10 @@ simple PersonNode {
     	// Node will become active startupOffset + random(startupRandomization) 
     	// seconds after the start of simulation
     	
-    	int timeBetweenMoves = default(100);
+    	int timeBetweenMoves 				= default(1); 		// o nó move se de x em x segundos (neste caso 1s)
+    	int moveVelocity 					= default(37); 	// qtos metros é que o nó se move (neste caso 2.5m por _timeBetweenMoves_ seg)
+    	double changeDirectionProbability 	= default(0.05); 	// probabilidade de o nó mudar de direção em cada movimento (de _timeBetweenMoves_ em _timeBetweenMoves_)
+    	string startDirection				= default("East");	// direção para onde o nó se desloca na 1ª iteração  
     	
 	gates:
 	    output toPhysicalProcess[];

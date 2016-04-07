@@ -29,7 +29,7 @@ simple WsnLogic like wsn_lighting.node.application.iApplication {
 	int minSampleInterval = default (1000);	// in msec
 	bool isSink = default (false);
 
-	int timeToDiminishLightIntensity = default(50); // Time (in msec) for light to diminish its intensity
+	int timeToDiminishLightIntensity = default(5); // Time (in sec) for light to diminish its intensity
 	
 	// This configuration came from .ini
 	bool coneLightingIsActive;	// Tell if we must create a cone of lighting when we detect a person
