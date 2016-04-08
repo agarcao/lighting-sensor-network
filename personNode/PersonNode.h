@@ -38,7 +38,7 @@ class PersonNode : public cSimpleModule
 
         // Helpers
         int checkDirection(string movementDirection);
-        int changeDirection();
+        int changeDirection(bool force = false);
         int getDirectionX(int direction);
         int getDirectionY(int direction);
     public:

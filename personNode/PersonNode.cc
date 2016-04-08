@@ -66,10 +66,24 @@ void PersonNode::handleMessage(cMessage *msg)
         int field_y = this->par("field_y");
 
         // Mudamos a posição da pessoa (person node)
-        int direction = this->changeDirection();
+        this->movementDirection = this->changeDirection();
+        ev << "[Person Node #" << this->getIndex() << "::handleMessage] Direcao #" << this->movementDirection << endl;
 
-        this->xCoor = (this->xCoor + (this->getDirectionX(direction) * this->moveVelocity)) % field_x;
-        this->yCoor = (this->yCoor + (this->getDirectionY(direction) * this->moveVelocity)) % field_y;
+        // TODO: Tem que se verificar se com o movimento a pessoa (personNode) não ultrapassa os limites do field. Se ultrapassar tem que mudar a direção do movimento
+        while (this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity) > field_x
+                || this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity) < 0
+                || this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity) > field_y
+                || this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity) < 0)
+        {
+            ev << "[Person Node #" << this->getIndex() << "::handleMessage] xCoord: " << this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity) << endl;
+            ev << "[Person Node #" << this->getIndex() << "::handleMessage] yCoor: " << this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity) << endl;
+            ev << "[Person Node #" << this->getIndex() << "::handleMessage] Com esta direção saimos do field" << endl;
+            this->movementDirection = this->changeDirection(true);
+            ev << "[Person Node #" << this->getIndex() << "::handleMessage] Movement direction é agr #" << this->movementDirection << endl;
+        }
+
+        this->xCoor = (this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity)) % field_x;
+        this->yCoor = (this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity)) % field_y;
 
         ev << "Eu (Person Node #" << this->getIndex() << " ) Move to (" << this->xCoor << ", " <<  this->yCoor << ")" << endl;
 
@@ -117,21 +131,24 @@ int PersonNode::checkDirection(string movementDirection)
     return 0;
 }
 
-int PersonNode::changeDirection()
+int PersonNode::changeDirection(bool force)
 {
-    bool trueOrFalse = (rand() % 100) > (100 - (this->changeDirectionProbability * 100));
+    bool trueOrFalse = (rand() % 100) > (100 - (this->changeDirectionProbability * 100)) || force;
     int directions[4] = {PersonMovementDirections::NORTH, PersonMovementDirections::EAST, PersonMovementDirections::SOUTH, PersonMovementDirections::WEST};
 
 
     // Se for para mudar
     if (trueOrFalse)
     {
+        ev << "[Person Node #" << this->getIndex() << "::changeDirection] Vamos mudar de direcção" << endl;
         int randomNumber = rand() % 4;
         int direction = directions[randomNumber];
         if (direction != this->movementDirection) {
+            ev << "[Person Node #" << this->getIndex() << "::changeDirection] Mudamos para #" << direction << endl;
             return direction;
         }
         else {
+            ev << "[Person Node #" << this->getIndex() << "::changeDirection] Direction = movement Direction" << direction << endl;
             return directions[(randomNumber + 1) % 4];
         }
     }
