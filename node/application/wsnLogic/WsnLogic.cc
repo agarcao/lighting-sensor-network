@@ -18,6 +18,19 @@ void WsnLogic::startup()
     this->coneLightingIsActive = par("coneLightingIsActive");
     this->radiousLighting = par("radiousLighting");
 
+    this->movementDirection = -1;
+
+    // Set o nós vizinhos
+    const char *neighborsNodesIDsString = par("neighborsNodesIDs");
+    int i = 0;
+
+    cStringTokenizer tokenizer(neighborsNodesIDsString);
+    while (tokenizer.hasMoreTokens())
+    {
+        this->neighborsNodesIds[i] = atoi(tokenizer.nextToken());
+        i++;
+    }
+
     //setTimer(REQUEST_SAMPLE, maxSampleInterval * randomBackoffIntervalFraction);
 }
 
@@ -103,7 +116,11 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
         case WSNLogicMessageTypes::ONLY_LIGHT_CONE:
         {
             /** Neste caso recebemos uma broadcast onde o objectivo é criar o cone de ilumninação */
-            // TODO: 1º - Verificar se estamos à espera de u
+            // TODO: 1º - Verificar se temos gravada uma direção (quer dizer que estamos á espera de detectar uma pessoa)
+            if (this->movementDirection != -1)
+            {}
+            else // Quer dizer que este nó não estava à espera de detetar nenhuma pessoa
+            {}
             break;
         }
         case WSNLogicMessageTypes::LIGHT_RADIOUS_CONE:
@@ -122,11 +139,11 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
 void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
 {
     // TODO: Receive SensorReadingMsg and do things
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Enter handleSensorReading function" << endl;
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::Application Module::WsnLogic::handleSensorReading] Enter handleSensorReading function" << endl;
 
     // 1st - We must say to the resource module to set the light up
     //// Construct the msg
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] We must send msg to Resource Module to set the light up" << endl;
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::Application Module::WsnLogic::handleSensorReading] We must send msg to Resource Module to set the light up" << endl;
 
     ostringstream s;
     s << "increaseLightSensor#" << getParentModule()->getIndex();
@@ -136,17 +153,17 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
 
     //// Send the msg to Resource
     send(resourceManagerMsg, "toResourceManager");
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Msg to Resource Module sent" << endl;
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::Application Module::WsnLogic::handleSensorReading] Msg to Resource Module sent" << endl;
 
 
     // 2nd - We must now create a self event to decrease the light intensity
     //// Cancel and Delete the self event (this way we dont need to check if event is already create or not
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Create a new self event to diminish the light intensity" << endl;
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::Application Module::WsnLogic::handleSensorReading] Create a new self event to diminish the light intensity" << endl;
 
     //// Set new timer
     setTimer(WsnLogicTimers::DIMINISH_LIGHT, this->timeToDiminishLightIntensity);
 
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Self event to diminish the light intensity schedule" << endl;
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::Application Module::WsnLogic::handleSensorReading] Self event to diminish the light intensity schedule" << endl;
 
 
     /** We must see if we must broadcast the event of detecting persons. We only do that if the 'coneLightingIsActive'
@@ -155,32 +172,40 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
     if (this->coneLightingIsActive || this->radiousLighting > 0)
     {
         // 3rd - We need now to broadcast a msg to the neighbor nodes
-        unsigned int type;
-
-        if (this->coneLightingIsActive && this->radiousLighting > 0)
-        {
-            type = WSNLogicMessageTypes::LIGHT_RADIOUS_CONE;
-        }
-        else if (this->coneLightingIsActive)
-        {
-            type = WSNLogicMessageTypes::ONLY_LIGHT_CONE;
-        }
-        else if (this->radiousLighting > 0)
-        {
-            type = WSNLogicMessageTypes::ONLY_LIGHT_RADIOUS;
-        }
-        else {
-            ev << "[Sensor Node #" << this->self << " - Application Module] Don't find any type" << endl;
-        }
         WsnLogicData tmpData;
-        tmpData.type = type;
         tmpData.originNodeID = (unsigned short)this->self;
         tmpData.senderNodeID = (unsigned short)this->self;
-        tmpData.destinationNodesID = NULL;
+        tmpData.destinationNodesID = -1;
         tmpData.hop = 1;                                    // in the beginning the msg still don't have any hop in the network
 
         ostringstream s1;
-        s1 << "Broadcast msg from node #" << this->self;
+
+        //// Escolher o tipo de mensagem
+        if (this->coneLightingIsActive && this->radiousLighting > 0)
+        {
+            tmpData.type = WSNLogicMessageTypes::LIGHT_RADIOUS_CONE;
+            s1 << "Broadcast msg from node #" << this->self << " with type LIGHT_RADIOUS_CONE";
+        }
+        else if (this->coneLightingIsActive)
+        {
+            tmpData.type = WSNLogicMessageTypes::ONLY_LIGHT_CONE;
+            s1 << "Broadcast msg from node #" << this->self << " with type ONLY_LIGHT_CONE";
+            // Tenho que ver se este nó tem alguma direção já previamente "setted"
+            if(this->movementDirection != -1)
+            {
+                // Temos de meter o nó destino com o nº do nó vizinho daquela direção
+                tmpData.destinationNodesID = this->neighborsNodesIds.find(this->movementDirection)->second;
+            }
+        }
+        else if (this->radiousLighting > 0)
+        {
+            tmpData.type = WSNLogicMessageTypes::ONLY_LIGHT_RADIOUS;
+            s1 << "Broadcast msg from node #" << this->self << " with type ONLY_LIGHT_RADIOUS";
+        }
+        else {
+            ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading] Don't find any type" << endl;
+        }
+
         msg = s1.str();
 
         WsnLogicDataPacket *packet2Net = new WsnLogicDataPacket(msg.c_str(), APPLICATION_PACKET);
@@ -192,7 +217,7 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
         this->sentOnce = true;
 
 
-        ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Exiting handleSensorReading function" << endl;
+        ev << "[Sensor Node #" << getParentModule()->getIndex() << "::Application Module::WsnLogic::handleSensorReading] Exiting handleSensorReading function" << endl;
         // int sensIndex =  rcvReading->getSensorIndex();
         // string sensType(rcvReading->getSensorType());
         //double sensValue = rcvReading->getSensedValue();

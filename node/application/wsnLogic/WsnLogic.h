@@ -16,6 +16,17 @@ enum WSNLogicMessageTypes {
     LIGHT_RADIOUS_CONE = 3
 };
 
+enum PersonMovementDirections {
+    NORTH = 0,
+    NORTHEAST = 1,
+    EAST = 2,
+    SOUTHEAST = 3,
+    SOUTH = 4,
+    SOUTHWEST = 5,
+    WEST = 6,
+    NORTHWEST = 7,
+};
+
 class WsnLogic: public VirtualApplication {
  private:
     int timeToDiminishLightIntensity;   // Time (in msec) for light to diminish its intensity
@@ -31,8 +42,11 @@ class WsnLogic: public VirtualApplication {
     bool sentOnce;
 
     // This values came from .ini
-    bool coneLightingIsActive;  // Tell if we must create a cone of lighting when we detect a person
-    int radiousLighting;        // Tell us how many neighbors nodes must be also turn on when a person is detected
+    bool coneLightingIsActive;          // Tell if we must create a cone of lighting when we detect a person
+    int radiousLighting;                // Tell us how many neighbors nodes must be also turn on when a person is detected
+
+    int movementDirection;              // Diz nos, em 1º lugar, se estamos à espera de detectar uma pessoa (person node) e qual é a direção deste
+    map<int, int> neighborsNodesIds;   // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
 
  protected:
     void startup();
