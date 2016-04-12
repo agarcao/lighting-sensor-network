@@ -142,7 +142,7 @@ unsigned int WsnLogicDataDescriptor::getFieldTypeFlags(void *object, int field) 
         FD_ISEDITABLE,
         FD_ISEDITABLE,
         FD_ISEDITABLE,
-        FD_ISPOINTER | FD_ISEDITABLE,
+        FD_ISEDITABLE,
         FD_ISEDITABLE,
     };
     return (field>=0 && field<5) ? fieldTypeFlags[field] : 0;
@@ -190,7 +190,7 @@ const char *WsnLogicDataDescriptor::getFieldTypeString(void *object, int field) 
         "unsigned short",
         "unsigned short",
         "unsigned short",
-        "unsigned short",
+        "int",
         "int",
     };
     return (field>=0 && field<5) ? fieldTypeStrings[field] : NULL;
@@ -236,7 +236,7 @@ std::string WsnLogicDataDescriptor::getFieldAsString(void *object, int field, in
         case 0: return ulong2string(pp->type);
         case 1: return ulong2string(pp->originNodeID);
         case 2: return ulong2string(pp->senderNodeID);
-        case 3: return ulong2string(pp->destinationNodesID);
+        case 3: return long2string(pp->destinationNodesID);
         case 4: return long2string(pp->hop);
         default: return "";
     }
@@ -255,7 +255,7 @@ bool WsnLogicDataDescriptor::setFieldAsString(void *object, int field, int i, co
         case 0: pp->type = string2ulong(value); return true;
         case 1: pp->originNodeID = string2ulong(value); return true;
         case 2: pp->senderNodeID = string2ulong(value); return true;
-        case 3: pp->destinationNodesID = string2ulong(value); return true;
+        case 3: pp->destinationNodesID = string2long(value); return true;
         case 4: pp->hop = string2long(value); return true;
         default: return false;
     }

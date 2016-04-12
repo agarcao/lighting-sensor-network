@@ -65,30 +65,14 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
         return;
     }
 
-    // Em 2º lugar - temos de acender a luz (caso ele ainda n tiver acesa) e renovar o timer que apaga a luz
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] We must send msg to Resource Module to set the light up" << endl;
-
-    //// Mandamos msg para o modulo 'resources' onde está a logica da lampada
-    ostringstream s;
-    s << "increaseLightSensor#" << getParentModule()->getIndex();
-    string msg = s.str();
-    ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
-    resourceManagerMsg->setIncreaseLightIntensity(true);
-    send(resourceManagerMsg, "toResourceManager");
-
-    //// Cancelamos e eliminamos o self event e criamos um novo para não haver merdas
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Cancel the diminish light event" << endl;
-    cancelTimer(WsnLogicTimers::DIMINISH_LIGHT);
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Create a new self event to diminish the light intensity" << endl;
-    setTimer(WsnLogicTimers::DIMINISH_LIGHT, this->timeToDiminishLightIntensity);
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Self event to diminish the light intensity schedule" << endl;
-
     // Em 3º lugar - O que vamos fazer a partir daqui dependerá do tipo de mensagem que foi recebido, por isso
     switch (theData.type)
     {
         case WSNLogicMessageTypes::ONLY_LIGHT_RADIOUS:
         {
             /** Neste caso recebemos uma broadcast onde o objectivo é só alargar o raio de iluminação */
+            this->turnOnTheLight();
+
             int hopCounter = theData.hop + 1;   // O +1 é porque é o numero de hops que vai chegar no próximo nó
             if (hopCounter <= this->radiousLighting)
             {
@@ -116,11 +100,90 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
         case WSNLogicMessageTypes::ONLY_LIGHT_CONE:
         {
             /** Neste caso recebemos uma broadcast onde o objectivo é criar o cone de ilumninação */
-            // TODO: 1º - Verificar se temos gravada uma direção (quer dizer que estamos á espera de detectar uma pessoa)
-            if (this->movementDirection != -1)
-            {}
-            else // Quer dizer que este nó não estava à espera de detetar nenhuma pessoa
-            {}
+            // 1º - Verifico se sou vizinho ou não do nó que mandou a msg
+            if (theData.hop == 1)
+            {
+                /** Sou vizinho por isso tenho sempre que guardar a direção do movimento, e caso a msg's DEST for para mim acender e reencaminhar o broadcast */
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Sou vizinho, tenho que guardar a direcção do movimento" << endl;
+
+                //// 1º - Vou guardar a direcção do movimento
+                this->movementDirection = this->getMovementDirectionFromSenderNodeID(theData.senderNodeID);
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Direcção do movimento a partir do senderNode #" << theData.senderNodeID << "é #" << this->movementDirection << endl;
+
+                //// 2º - Se a msg for para mim, acendo e reencaminho broadcast
+                if (this->self == theData.destinationNodesID)
+                {
+                    ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Sou vizinho e a msg é para mim = Vou acender e reencaminhar a msg" << endl;
+                    // A mensagem é para mim por isso devo acender e manda a msg na mesma direção
+                    this->turnOnTheLight(); // Chamo o metodo para acender a luz
+
+                    // Temos de ver qual deve ser o destino da próxima msg
+                    int dest = this->neighborsNodesIds[this->movementDirection];
+
+                    if (dest != -1) // quer dizer que ainda tem vizinhos na direcção que queremos
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Ainda tenho vizinho #" << dest << " na direcção #" << this->movementDirection << endl;
+                        WsnLogicData tmpData;
+                        tmpData.type = theData.type;
+                        tmpData.originNodeID = theData.originNodeID;
+                        tmpData.senderNodeID = (unsigned short)this->self;
+                        tmpData.destinationNodesID = dest;
+                        tmpData.hop = theData.hop + 1;
+
+                        WsnLogicDataPacket *tmpPacket = rcvPacket->dup();
+                        tmpPacket->setExtraData(tmpData);
+
+                        toNetworkLayer(tmpPacket, BROADCAST_NETWORK_ADDRESS);
+                        this->sentOnce = true;
+                    }
+                    else
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Já não tenho vizinho na direcção #" << this->movementDirection << endl;
+                    }
+                }
+                else // Msg não é para mim
+                {
+                    ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Sou vizinho mas a msg n é para mim = Não acendo nem reencaminho" << endl;
+                }
+            }
+            else // Não sou vizinho por isso só faço algo se o campo DEST do BROAD for o meu id
+            {
+                if (this->self == theData.destinationNodesID)
+                {
+                    ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Não sou vizinho mas a msg é para mim. Vou acender e recaminhar" << endl;
+                    // A mensagem é para mim por isso devo acender e manda a msg na mesma direção
+                    this->turnOnTheLight(); // Chamo o metodo para acender a luz
+
+                    // Temos de ver qual deve ser o destino da próxima msg
+                    int movementDirection = this->getMovementDirectionFromSenderNodeID(theData.senderNodeID);
+                    int dest = this->neighborsNodesIds[movementDirection];
+
+                    if (dest != -1) // quer dizer que ainda tem vizinhos na direcção que queremos
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Ainda tenho vizinho #" << dest << " na direcção #" << this->movementDirection << endl;
+                        WsnLogicData tmpData;
+                        tmpData.type = theData.type;
+                        tmpData.originNodeID = theData.originNodeID;
+                        tmpData.senderNodeID = (unsigned short)this->self;
+                        tmpData.destinationNodesID = dest;
+                        tmpData.hop = theData.hop + 1;
+
+                        WsnLogicDataPacket *tmpPacket = rcvPacket->dup();
+                        tmpPacket->setExtraData(tmpData);
+
+                        toNetworkLayer(tmpPacket, BROADCAST_NETWORK_ADDRESS);
+                        this->sentOnce = true;
+                    }
+                    else
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Já não tenho vizinho na direcção #" << this->movementDirection << endl;
+                    }
+                }
+                else // Não sou vizinho e a msg n é para mim = descarto
+                {
+                    ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Not neighbor and msg's DEST is not for me = discard the msg" << endl;
+                }
+            }
             break;
         }
         case WSNLogicMessageTypes::LIGHT_RADIOUS_CONE:
@@ -195,6 +258,7 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
             {
                 // Temos de meter o nó destino com o nº do nó vizinho daquela direção
                 tmpData.destinationNodesID = this->neighborsNodesIds.find(this->movementDirection)->second;
+                ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading] A msg tem com DEST #" << tmpData.destinationNodesID << endl;
             }
         }
         else if (this->radiousLighting > 0)
@@ -257,4 +321,98 @@ void WsnLogic::handleSelfEvent()
     send(resourceManagerMsg, "toResourceManager");
 
     ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Msg to diminish the light intensity send to Resource Module" << endl;
+}
+
+void WsnLogic::turnOnTheLight()
+{
+    // Em 2º lugar - temos de acender a luz (caso ele ainda n tiver acesa) e renovar o timer que apaga a luz
+    ev << "[Sensor Node #" << this->self << "::WsnLogic::turnOnTheLight] We must send msg to Resource Module to set the light up" << endl;
+
+    //// Mandamos msg para o modulo 'resources' onde está a logica da lampada
+    ostringstream s;
+    s << "increaseLightSensor#" << this->self;
+    string msg = s.str();
+    ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
+    resourceManagerMsg->setIncreaseLightIntensity(true);
+    send(resourceManagerMsg, "toResourceManager");
+
+    //// Cancelamos e eliminamos o self event e criamos um novo para não haver merdas
+    ev << "[Sensor Node #" << this->self << "::WsnLogic::turnOnTheLight] Cancel the diminish light event" << endl;
+    cancelTimer(WsnLogicTimers::DIMINISH_LIGHT);
+    ev << "[Sensor Node #" << this->self << "::WsnLogic::turnOnTheLight] Create a new self event to diminish the light intensity" << endl;
+    setTimer(WsnLogicTimers::DIMINISH_LIGHT, this->timeToDiminishLightIntensity);
+    ev << "[Sensor Node #" << this->self << "::WsnLogic::turnOnTheLight] Self event to diminish the light intensity schedule" << endl;
+}
+
+int WsnLogic::getMovementDirectionFromSenderNodeID(int senderNodeID)
+{
+    // 1º - Check qual é a key do _senderNodeID_ no mapa de vizinhos
+    int key = -1;
+    ev << "[Sensor Node #" << this->self << "::WsnLogic::getDestFromSenderNodeID] Vamos verificar qual é a key do nó #" << senderNodeID << endl;
+
+    for (auto& neighbor: this->neighborsNodesIds) {
+        if (senderNodeID == neighbor.second)
+        {
+            ev << "[Sensor Node #" << this->self << "::WsnLogic::getDestFromSenderNodeID] Key do nó #" << senderNodeID << " é #" << neighbor.first << endl;
+            key = neighbor.first;
+            break;
+        }
+    }
+
+    // 2º - Fazemos o mapeamento
+    int directionKey = -1;
+    if (key != -1)
+    {
+        switch (key)
+        {
+            case PersonMovementDirections::NORTH:
+            {
+                directionKey = PersonMovementDirections::SOUTH;
+                break;
+            }
+            case PersonMovementDirections::NORTHEAST:
+            {
+                directionKey = PersonMovementDirections::SOUTHWEST;
+                break;
+            }
+            case PersonMovementDirections::EAST:
+            {
+                directionKey = PersonMovementDirections::WEST;
+                break;
+            }
+            case PersonMovementDirections::SOUTHEAST:
+            {
+                directionKey = PersonMovementDirections::NORTHWEST;
+                break;
+            }
+            case PersonMovementDirections::SOUTH:
+            {
+                directionKey = PersonMovementDirections::NORTH;
+                break;
+            }
+            case PersonMovementDirections::SOUTHWEST:
+            {
+                directionKey = PersonMovementDirections::NORTHEAST;
+                break;
+            }
+            case PersonMovementDirections::WEST:
+            {
+                directionKey = PersonMovementDirections::EAST;
+                break;
+            }
+            case PersonMovementDirections::NORTHWEST:
+            {
+                directionKey = PersonMovementDirections::SOUTHEAST;
+                break;
+            }
+        }
+
+        ev << "[Sensor Node #" << this->self << "::WsnLogic::getDestFromSenderNodeID] A directionKey é #" << directionKey << endl;
+        return directionKey;
+    }
+    else
+    {
+        ev << "[Sensor Node #" << this->self << "::WsnLogic::getDestFromSenderNodeID] Não deveria acontecer." << endl;
+        opp_error("Can't happen!");
+    }
 }

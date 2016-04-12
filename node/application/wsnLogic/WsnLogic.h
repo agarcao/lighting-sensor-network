@@ -48,6 +48,10 @@ class WsnLogic: public VirtualApplication {
     int movementDirection;              // Diz nos, em 1º lugar, se estamos à espera de detectar uma pessoa (person node) e qual é a direção deste
     map<int, int> neighborsNodesIds;   // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
 
+    /* FUNCTIONS */
+    void turnOnTheLight();
+    int getMovementDirectionFromSenderNodeID(int senderNodeID);
+
  protected:
     void startup();
     void fromNetworkLayer(ApplicationPacket *, const char *, double, double);
