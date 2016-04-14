@@ -28,11 +28,11 @@ void PersonNode::initialize()
     }
 
     // Random Values for initial Person position on the map
-    this->xCoor = rand() % field_x;
-    this->yCoor = rand() % field_y;
+    //this->xCoor = rand() % field_x;
+    //this->yCoor = rand() % field_y;
 
-    //this->xCoor = 15;
-    //this->yCoor = 15;
+    this->xCoor = 15;
+    this->yCoor = 225;
 
     ev << "Eu (Person Node #" << this->getIndex() << " ) inicializei-me na posição ("
             << this->xCoor << ", " << this->yCoor << ")" << endl;

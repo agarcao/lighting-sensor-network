@@ -419,8 +419,10 @@ void WirelessChannel::handleMessage(cMessage * msg)
             /* If the resulting current signal received is not strong enough,
              * to be delivered to the radio module, continue to the next cell.
              */
-            if (false)
+            if (currentSignalReceived < signalDeliveryThreshold){
+                ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] O broadcast não chega a este nó" << endl;
                 continue;
+            }
 
             /* Else go through all the nodes of that cell.
              * Iterator it2 returns node IDs.

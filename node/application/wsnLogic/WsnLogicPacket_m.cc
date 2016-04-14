@@ -58,7 +58,8 @@ WsnLogicData::WsnLogicData()
     type = 0;
     originNodeID = 0;
     senderNodeID = 0;
-    destinationNodesID = 0;
+    for (unsigned int i=0; i<8; i++)
+        destinationNodesID[i] = 0;
     hop = 0;
 }
 
@@ -67,7 +68,7 @@ void doPacking(cCommBuffer *b, WsnLogicData& a)
     doPacking(b,a.type);
     doPacking(b,a.originNodeID);
     doPacking(b,a.senderNodeID);
-    doPacking(b,a.destinationNodesID);
+    doPacking(b,a.destinationNodesID,8);
     doPacking(b,a.hop);
 }
 
@@ -76,7 +77,7 @@ void doUnpacking(cCommBuffer *b, WsnLogicData& a)
     doUnpacking(b,a.type);
     doUnpacking(b,a.originNodeID);
     doUnpacking(b,a.senderNodeID);
-    doUnpacking(b,a.destinationNodesID);
+    doUnpacking(b,a.destinationNodesID,8);
     doUnpacking(b,a.hop);
 }
 
@@ -142,7 +143,7 @@ unsigned int WsnLogicDataDescriptor::getFieldTypeFlags(void *object, int field) 
         FD_ISEDITABLE,
         FD_ISEDITABLE,
         FD_ISEDITABLE,
-        FD_ISEDITABLE,
+        FD_ISARRAY | FD_ISEDITABLE,
         FD_ISEDITABLE,
     };
     return (field>=0 && field<5) ? fieldTypeFlags[field] : 0;
@@ -219,6 +220,7 @@ int WsnLogicDataDescriptor::getArraySize(void *object, int field) const
     }
     WsnLogicData *pp = (WsnLogicData *)object; (void)pp;
     switch (field) {
+        case 3: return 8;
         default: return 0;
     }
 }
@@ -236,7 +238,8 @@ std::string WsnLogicDataDescriptor::getFieldAsString(void *object, int field, in
         case 0: return ulong2string(pp->type);
         case 1: return ulong2string(pp->originNodeID);
         case 2: return ulong2string(pp->senderNodeID);
-        case 3: return long2string(pp->destinationNodesID);
+        case 3: if (i>=8) return "";
+                return long2string(pp->destinationNodesID[i]);
         case 4: return long2string(pp->hop);
         default: return "";
     }
@@ -255,7 +258,8 @@ bool WsnLogicDataDescriptor::setFieldAsString(void *object, int field, int i, co
         case 0: pp->type = string2ulong(value); return true;
         case 1: pp->originNodeID = string2ulong(value); return true;
         case 2: pp->senderNodeID = string2ulong(value); return true;
-        case 3: pp->destinationNodesID = string2long(value); return true;
+        case 3: if (i>=8) return false;
+                pp->destinationNodesID[i] = string2long(value); return true;
         case 4: pp->hop = string2long(value); return true;
         default: return false;
     }

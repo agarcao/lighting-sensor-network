@@ -45,12 +45,13 @@ class WsnLogic: public VirtualApplication {
     bool coneLightingIsActive;          // Tell if we must create a cone of lighting when we detect a person
     int radiousLighting;                // Tell us how many neighbors nodes must be also turn on when a person is detected
 
-    int movementDirection;              // Diz nos, em 1º lugar, se estamos à espera de detectar uma pessoa (person node) e qual é a direção deste
-    map<int, int> neighborsNodesIds;   // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
+    map<int, int> neighborsNodesIds;        // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
+    list<int> movementDirections;           // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
 
     /* FUNCTIONS */
     void turnOnTheLight();
     int getMovementDirectionFromSenderNodeID(int senderNodeID);
+    void coneLightingLogic(WsnLogicDataPacket* broadcastDataPacket);
 
  protected:
     void startup();

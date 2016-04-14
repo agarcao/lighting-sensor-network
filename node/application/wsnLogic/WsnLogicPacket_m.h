@@ -28,7 +28,7 @@ struct WsnLogicData
     unsigned short type;
     unsigned short originNodeID;
     unsigned short senderNodeID;
-    int destinationNodesID;
+    int destinationNodesID[8];
     int hop;
 };
 
