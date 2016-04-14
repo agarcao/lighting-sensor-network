@@ -18,6 +18,8 @@ void WsnLogic::startup()
     this->coneLightingIsActive = par("coneLightingIsActive");
     this->radiousLighting = par("radiousLighting");
 
+    this->timeToDeleteMovementDirection = 0.5;
+
     // Set o nós vizinhos
     const char *neighborsNodesIDsString = par("neighborsNodesIDs");
     int i = 0;
@@ -36,6 +38,20 @@ void WsnLogic::timerFiredCallback(int index)
 {
     switch (index)
     {
+        case WsnLogicTimers::CONE_NORTH_DIRECTION:
+        case WsnLogicTimers::CONE_NORTHEAST_DIRECTION:
+        case WsnLogicTimers::CONE_EAST_DIRECTION:
+        case WsnLogicTimers::CONE_SOUTHEAST_DIRECTION:
+        case WsnLogicTimers::CONE_SOUTH_DIRECTION:
+        case WsnLogicTimers::CONE_SOUTHWEST_DIRECTION:
+        case WsnLogicTimers::CONE_WEST_DIRECTION:
+        case WsnLogicTimers::CONE_NORTHWEST_DIRECTION:
+        {
+            // Temos de remover a movimentDirection da lista
+            ev << "[Node #" << this->self << "::WsnLogic::timerFiredCallback] Vamos retirar o movimentDirection #" << index << " do array" << endl;
+            this->movementDirections.remove(index);
+            break;
+        }
         case WsnLogicTimers::DIMINISH_LIGHT:
         {
             handleSelfEvent();
@@ -114,7 +130,8 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
                 this->movementDirections.remove(movementDirection);
                 this->movementDirections.push_front(movementDirection);
 
-                // TODO: 1.3. Criamos um timer que qdo acabar vai retirar esta direcção da lista
+                // 1.3. Criamos um timer que qdo acabar vai retirar esta direcção da lista
+                setTimer(movementDirection, this->timeToDeleteMovementDirection);
 
                 // 1.1.4. Chama-se a logica inerente a este tipo de mensagem: ONLY_LIGHT_CONE
                 this->coneLightingLogic(rcvPacket);
@@ -139,6 +156,7 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
 
     ev << "[Sensor Node #" << getParentModule()->getIndex() << "::WsnLogic::fromNetworkLayer] Exiting handleSensorReading function" << endl;
 }
+
 
 void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
 {
@@ -207,6 +225,10 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
                     ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading] A msg tem com DEST #" << tmpData.destinationNodesID[i] << endl;
                     i++;
                 }
+            }
+            else
+            {
+                ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading] A msg NÃO tem nenhum DEST" << endl;
             }
         }
         else if (this->radiousLighting > 0)
