@@ -60,6 +60,9 @@ network SensorNetwork {
     	    parameters:
     	        sensor_radius = default(50);
     	        
+    	        numHorizontalCells = horizontal_cells;
+    	        numVerticalCells = vertical_cells;
+    	        
     	        @display("i=status/off_25;is=vs;r=$sensor_radius,,#8080FF;p=50,50;");
         	gates:
         		toPhysicalProcess[numPhysicalProcesses];

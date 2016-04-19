@@ -21,6 +21,7 @@ void WsnLogic::startup()
     this->timeToDeleteMovementDirection = 0.5;
 
     // Set o nós vizinhos
+    /*
     const char *neighborsNodesIDsString = par("neighborsNodesIDs");
     int i = 0;
 
@@ -29,8 +30,104 @@ void WsnLogic::startup()
     {
         this->neighborsNodesIds[i] = atoi(tokenizer.nextToken());
         i++;
+    }*/
+
+    // Set do nós vizinhos automaticamente
+    // 1. Precisamos do numero de cells horizontais e verticais
+    int numHorizontalCells = this->getAncestorPar("numHorizontalCells");
+    int numVerticalCells = this->getAncestorPar("numVerticalCells");
+
+    // 2. Vamos agora construir a lista de vizinhos
+    // 2.1. Norte
+    int northNodeID = this->self - numHorizontalCells;
+    if (northNodeID < 0)
+    {
+        this->neighborsNodesIds[PersonMovementDirections::NORTH] = -1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::NORTH] = northNodeID;
     }
 
+    // 2.2. Este
+    if (((this->self + 1) % numHorizontalCells) == 0)
+    {
+        this->neighborsNodesIds[PersonMovementDirections::EAST] = -1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::EAST] = (this->self + 1);
+    }
+
+    // 2.3. Sul
+    int southNodeID = this->self + numHorizontalCells;
+    if (southNodeID >= (numHorizontalCells * numVerticalCells))
+    {
+        this->neighborsNodesIds[PersonMovementDirections::SOUTH] = -1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::SOUTH] = southNodeID;
+    }
+
+    // 2.4. Oeste
+    if ((this->self % numHorizontalCells) == 0)
+    {
+        this->neighborsNodesIds[PersonMovementDirections::WEST] = -1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::WEST] = (this->self - 1);
+    }
+
+    // 2.5. NordEste
+    if (this->neighborsNodesIds[PersonMovementDirections::NORTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::EAST] != -1)
+    {
+        this->neighborsNodesIds[PersonMovementDirections::NORTHEAST] = this->neighborsNodesIds[PersonMovementDirections::NORTH] + 1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::NORTHEAST] = -1;
+    }
+
+    // 2.6. NordOeste
+    if (this->neighborsNodesIds[PersonMovementDirections::NORTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::WEST] != -1)
+    {
+        this->neighborsNodesIds[PersonMovementDirections::NORTHWEST] = this->neighborsNodesIds[PersonMovementDirections::NORTH] - 1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::NORTHWEST] = -1;
+    }
+
+    // 2.7. SudEste
+    if (this->neighborsNodesIds[PersonMovementDirections::SOUTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::EAST] != -1)
+    {
+        this->neighborsNodesIds[PersonMovementDirections::SOUTHEAST] = this->neighborsNodesIds[PersonMovementDirections::SOUTH] + 1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::SOUTHEAST] = -1;
+    }
+
+    // 2.8. SudOeste
+    if (this->neighborsNodesIds[PersonMovementDirections::SOUTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::WEST] != -1)
+    {
+        this->neighborsNodesIds[PersonMovementDirections::SOUTHWEST] = this->neighborsNodesIds[PersonMovementDirections::SOUTH] - 1;
+    }
+    else
+    {
+        this->neighborsNodesIds[PersonMovementDirections::SOUTHWEST] = -1;
+    }
+
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORTE: #" << this->neighborsNodesIds[PersonMovementDirections::NORTH] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORDESTE: #" << this->neighborsNodesIds[PersonMovementDirections::NORTHEAST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho ESTE: #" << this->neighborsNodesIds[PersonMovementDirections::EAST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUDESTE: #" << this->neighborsNodesIds[PersonMovementDirections::SOUTHEAST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUL: #" << this->neighborsNodesIds[PersonMovementDirections::SOUTH] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUDOESTE: #" << this->neighborsNodesIds[PersonMovementDirections::SOUTHWEST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho OESTE: #" << this->neighborsNodesIds[PersonMovementDirections::WEST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORDOESTE: #" << this->neighborsNodesIds[PersonMovementDirections::NORTHWEST] << endl;
     //setTimer(REQUEST_SAMPLE, maxSampleInterval * randomBackoffIntervalFraction);
 }
 

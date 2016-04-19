@@ -34,6 +34,9 @@ module Node {
     	
     	// This config came from SensorNetwork.ned
     	int sensor_radius;
+    	int numHorizontalCells;
+   		int numVerticalCells;
+   		
  	gates:
     	output toWirelessChannel;
     	output toPhysicalProcess[];
