@@ -18,7 +18,7 @@ void WsnLogic::startup()
     this->coneLightingIsActive = par("coneLightingIsActive");
     this->radiousLighting = par("radiousLighting");
 
-    this->timeToDeleteMovementDirection = 0.5;
+    this->timeToDeleteMovementDirection = 1.5;
 
     // Set o nós vizinhos
     /*
@@ -511,17 +511,21 @@ void WsnLogic::coneLightingLogic(WsnLogicDataPacket* broadcastDataPacket)
     // Se este nó for um dos DEST do BROADCAST
     if (inDestinationsNodesID)
     {
-        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Sou vizinho e a msg é para mim = Vou acender e reencaminhar a msg" << endl;
+        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Msg é para mim = Vou acender e reencaminhar a msg" << endl;
         // A mensagem é para mim por isso devo acender e manda a msg na mesma direção
         this->turnOnTheLight(); // Chamo o metodo para acender a luz
 
         // Temos de ver qual deve ser o destino da próxima msg
-        bool hasValidNeighbors = false;
+        // EDIT: Neste caso o destino da mensagem deve ser a direção de onde vem a msg
+        /*bool hasValidNeighbors = false;
         int destinationNodeIDsForBroadcast[8] = {-1};
-        int neigborNodeID, i = 0;
+        int neigborNodeID, i = 0;*/
+
+        /* ISTO SÓ FAZ SENTIDO QDO DETETAMOS A PESSOA E NÃO SABEMOS DONDE VEM
         for (list<int>::iterator it = this->movementDirections.begin(); it != this->movementDirections.end(); it++)
         {
             neigborNodeID = this->neighborsNodesIds[*it];
+            ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Vizinho #" << neigborNodeID << " na direcção #" << *it << endl;
 
             if (neigborNodeID != -1) // Se isto acontecer significa que este nó tem vizinho na direção *it
             {
@@ -532,18 +536,29 @@ void WsnLogic::coneLightingLogic(WsnLogicDataPacket* broadcastDataPacket)
             }
             else // Se isto acontecer significa que este nó n tem vizinho na direção *it
             {
-                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Não tenho vizinho na direcção #" << *it << endl;
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Não tenho vizinho na direcção_1 #" << *it << endl;
             }
         }
+        */
 
-        if (hasValidNeighbors) // quer dizer que tem pelo menos um vizinho nas direções que procuramos
+        /*if (hasValidNeighbors) // quer dizer que tem pelo menos um vizinho nas direções que procuramos
+        {*/
+        int movementDirection = this->getMovementDirectionFromSenderNodeID(broadcastData.senderNodeID);
+        int destinationNodeID = this->neighborsNodesIds[movementDirection];
+
+        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] A msg veio do nó #" << broadcastData.senderNodeID << " e por isso tem direcção #"
+                << movementDirection << " e vai com destino #" << destinationNodeID  << endl;
+
+        if (destinationNodeID != -1)
         {
-            ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Tenho pelo menos um vizinho nas direções que procuramos" << endl;
+            ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Destino é #" << destinationNodeID << "e não -1 por isso vamos fazer broadcast" << endl;
+
             WsnLogicData tmpData;
             tmpData.type = broadcastData.type;
             tmpData.originNodeID = broadcastData.originNodeID;
             tmpData.senderNodeID = (unsigned short)this->self;
-            std::copy(destinationNodeIDsForBroadcast, destinationNodeIDsForBroadcast + 8, tmpData.destinationNodesID); // Copiamos a informação dos nós destino para o BROADCAST
+            fill_n(tmpData.destinationNodesID, 8, -1);          // Devemos por todos os valores do destinationNodesID a -1, inicialmente
+            tmpData.destinationNodesID[0] = destinationNodeID;
             tmpData.hop = broadcastData.hop + 1;
 
             WsnLogicDataPacket *tmpPacket = broadcastDataPacket->dup();
@@ -552,10 +567,14 @@ void WsnLogic::coneLightingLogic(WsnLogicDataPacket* broadcastDataPacket)
             toNetworkLayer(tmpPacket, BROADCAST_NETWORK_ADDRESS);
             this->sentOnce = true;
         }
+        else
+        {
+            ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Destino é #-1 e por isso n fazemos broadcast" << endl;
+        }
     }
     else // Msg não é para mim
     {
-        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Sou vizinho mas a msg n é para mim = Não acendo nem reencaminho" << endl;
+        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Msg n é para mim = Não acendo nem reencaminho" << endl;
     }
 
     ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Sai da função." << endl;

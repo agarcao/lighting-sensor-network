@@ -50,7 +50,7 @@ class WsnLogic: public VirtualApplication {
     bool sentOnce;
 
     map<int, int> neighborsNodesIds;        // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
-    list<int> movementDirections;           // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
+    list<int> movementDirections;           // Tem a lista de direcções recebidas
 
     float timeToDeleteMovementDirection;  // This tell us the seconds that a movement direction stay in the movementDirections list
 
