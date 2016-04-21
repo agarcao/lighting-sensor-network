@@ -243,6 +243,126 @@ void WsnLogic::fromNetworkLayer(ApplicationPacket * genericPacket,
         }
         case WSNLogicMessageTypes::LIGHT_RADIOUS_CONE:
         {
+            ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] O broadcast é do tipo LIGHT_RADIOUS_CONE. Entramos nesse case." << endl;
+            // TODO: Quando recebemos uma mensagem deste tipo temos realizar a lógica do ONLY_LIGHT_RADIOUS e CONE c/ algumas mudanças
+            // 1. Vamos acender a luz porque se este tipo de msg chegou a este nó então é pq devemos acender
+            this->turnOnTheLight();
+
+            // 2. De seguida vamos ver se este nó é vizinho do nó que mandou a msg
+            if (theData.hop == 1)
+            {
+                /** Sou vizinho por isso tenho sempre que guardar a direção do movimento, e caso a msg's DEST for para mim acender e reencaminhar o broadcast */
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] Sou vizinho do nó que mandou o broadcast, tenho que guardar a direcção do movimento" << endl;
+
+                // 1.1 Vou guardar a direção do movimento e criar o timer correspondente para este ser apagado da lista de direções de movimento deste nó
+                // 1.1.1 Recolho a direção do movimento com base no nó que enviou a msg
+                int movementDirection = this->getMovementDirectionFromSenderNodeID(theData.senderNodeID);
+
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer] Direcção do movimento a partir do senderNode #" << theData.senderNodeID << "é #" << movementDirection << endl;
+
+                // 1.1.2. Removemos a direção e voltamos a colocar para n haver duplicação
+                this->movementDirections.remove(movementDirection);
+                this->movementDirections.push_front(movementDirection);
+
+                // 1.3. Criamos um timer que qdo acabar vai retirar esta direcção da lista
+                setTimer(movementDirection, this->timeToDeleteMovementDirection);
+
+                // 1.1.4. Chama-se a logica inerente a este tipo de mensagem: ONLY_LIGHT_CONE
+                //this->coneLightingLogic(rcvPacket);
+            }
+            // 2. Não sou vizinho = só faço algo se o campo DEST do BROAD for o meu id
+            else
+            {
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] Não sou vizinho do nó que mandou o broadcast. Não tenho de guardar nada." << endl;
+                // 2.1. Chama-se a logica inerente a este tipo de mensagem: ONLY_LIGHT_CONE
+                //this->coneLightingLogic(rcvPacket);
+            }
+
+            // 3. Finalmente temos de ver o que vamos 'broadcastar' (se é q vamos alguma coisa)
+            // 3.1. Um dos IF's é ver se o array destinationNodesIDs do broadcast recebido tem o nodeID deste node
+            bool inDestinationsNodesID = false;
+            for (int i = 0; i < 8; i++)
+            {
+                if(theData.destinationNodesID[i] == -1) // como este é um array de 8 posições, esta á a maneira de sabermos que já não existem mais
+                {
+                    break;
+                }
+                else if (theData.destinationNodesID[i] == this->self) // Caso estiver no destinationNodesID array este NodeID,
+                {
+                    inDestinationsNodesID = true;
+                    break;
+                }
+            }
+
+            // 3.2. Outro dos IF's é o hopCounter + 1 ser menor ou igual ao radiousLighting
+            int hopCounter = theData.hop + 1;
+
+            // 3.3. Vamos agora ver qual é o tipo de broadcast que vamos fazer
+            if (inDestinationsNodesID || (hopCounter <= this->radiousLighting))
+            {
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] Um dos IF's é true. Vamos mandar de certeza um broadcast." << endl;
+
+                WsnLogicData tmpData;
+                tmpData.type = WSNLogicMessageTypes::LIGHT_RADIOUS_CONE;
+                tmpData.originNodeID = theData.originNodeID;
+                tmpData.senderNodeID = (unsigned short)this->self;
+                fill_n(tmpData.destinationNodesID, 8, -1);
+                tmpData.hop = hopCounter;
+
+                if (inDestinationsNodesID)
+                {
+                    ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] Vamos ver se o CONE ainda se aplica." << endl;
+
+                    // 3.4. Temos de ir descobrir que qual é o nó destino a partir do nó que mandou o broadcast caso exista
+                    int movementDirection = this->getMovementDirectionFromSenderNodeID(theData.senderNodeID);
+                    int destinationNodeID = this->neighborsNodesIds[movementDirection];
+
+                    ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] A msg veio do nó #" << theData.senderNodeID << " e por isso tem direcção #"
+                                    << movementDirection << " e vai com destino #" << destinationNodeID  << endl;
+
+                    // 3.5. Metemos no destinationNodesIDs caso exista um vizinho
+                    if (destinationNodeID != -1)
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] Destino é #" << destinationNodeID << " e o type é ONLY_LIGHT_CONE por agora" << endl;
+                        tmpData.destinationNodesID[0] = destinationNodeID;
+                        tmpData.type = WSNLogicMessageTypes::ONLY_LIGHT_CONE;
+                    }
+                    else
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] Já não tem vizinhos na direção." << endl;
+                    }
+                }
+
+                // 3.6. Vemos se o LIGTH RADIOUS ainda se aplica
+                if (hopCounter <= this->radiousLighting)
+                {
+                    ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] O ONLY_LIGHT_RADIOUS ainda se aplica para este broadcast." << endl;
+
+                    if (inDestinationsNodesID)
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] O type é LIGHT_RADIOUS_CONE." << endl;
+                        tmpData.type = WSNLogicMessageTypes::LIGHT_RADIOUS_CONE;
+                    }
+                    else
+                    {
+                        ev << "[Sensor Node #" << this->self << "::WsnLogic::coneLightLogic] O type é ONLY_LIGHT_RADIOUS." << endl;
+                        tmpData.type = WSNLogicMessageTypes::ONLY_LIGHT_RADIOUS;
+                    }
+                }
+
+                // 3.7 Finalmente mandamos o broadcast
+                WsnLogicDataPacket *tmpPacket = rcvPacket->dup();
+                tmpPacket->setExtraData(tmpData);
+
+                toNetworkLayer(tmpPacket, BROADCAST_NETWORK_ADDRESS);
+                this->sentOnce = true;
+            }
+            else
+            {
+                ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] Não existe o broadcast por nenhum dos IF's é true." << endl;
+            }
+
+            ev << "[Sensor Node #" << this->self << "::WsnLogic::fromNetworkLayer..LIGHT_RADIOUS_CONE] Saimos do case LIGHT_RADIOUS_CONE." << endl;
             break;
         }
         default:
@@ -302,19 +422,41 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
         //// Escolher o tipo de mensagem
         if (this->coneLightingIsActive && this->radiousLighting > 0)
         {
+            ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading(LIGHT_RADIOUS_CONE)] Estamos no IF = LIGHT_RADIOUS_CONE" << endl;
+
             tmpData.type = WSNLogicMessageTypes::LIGHT_RADIOUS_CONE;
             s1 << "Broadcast msg from node #" << this->self << " with type LIGHT_RADIOUS_CONE";
+
+            // 1. Com a criação da lista de movementDirections tenho que verificar se essa lista não está vazia e caso isso se confirme enviar para os vários destinos
+            if(!this->movementDirections.empty())
+            {
+
+                // 1.1. Iterar todos os nos da lista e mete-los na msg para o BROAD
+                int i = 0;
+                for (list<int>::iterator it = this->movementDirections.begin(); it != this->movementDirections.end(); it++)
+                {
+                    tmpData.destinationNodesID[i] = this->neighborsNodesIds.find(*it)->second;
+                    ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading(LIGHT_RADIOUS_CONE)] A msg tem com DEST #" << tmpData.destinationNodesID[i] << endl;
+                    i++;
+                }
+            }
+            else
+            {
+                ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading(LIGHT_RADIOUS_CONE)] A msg NÃO tem nenhum DEST" << endl;
+            }
+
+            ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSensorReading(LIGHT_RADIOUS_CONE)] Saimos do IF = LIGHT_RADIOUS_CONE" << endl;
         }
         else if (this->coneLightingIsActive)
         {
             tmpData.type = WSNLogicMessageTypes::ONLY_LIGHT_CONE;
             s1 << "Broadcasting msg from node #" << this->self << " with type ONLY_LIGHT_CONE";
 
-            // TODO: Com a criação da lista de movementDirections tenho que verificar se essa lista não está vazia e caso isso se confirme enviar para os vários destinos
+            // 1. Com a criação da lista de movementDirections tenho que verificar se essa lista não está vazia e caso isso se confirme enviar para os vários destinos
             if(!this->movementDirections.empty())
             {
 
-                // Iterar todos os nos da lista e mete-los na msg para o BROAD
+                // 1.1. Iterar todos os nos da lista e mete-los na msg para o BROAD
                 int i = 0;
                 for (list<int>::iterator it = this->movementDirections.begin(); it != this->movementDirections.end(); it++)
                 {
