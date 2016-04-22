@@ -44,7 +44,24 @@ void ResourceManager::initialize()
 	remainingEnergy = initialEnergy;
 	totalRamData = 0;
 	disabled = true;
-	this->lightIntensity = par("lightIntensity");
+
+	this->lightIntensity = 0;
+
+	// Aqui preciso de ir buscar o parametro nearObstacle do nó para ver que display devo pôr
+	if (this->getAncestorPar("nearObstacle"))
+	{
+	    ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::initialize] Este nó está perto dum obstaculo por isso deve estar iluminado" << endl;
+	    this->lightIntensity = 1;
+
+        cDisplayString &nodeDS = this->getParentModule()->getDisplayString();
+        nodeDS.setTagArg("i", 0, "status/yellow_mid_25");
+
+        cModule *grandFatherNode = this->getParentModule()->getParentModule();
+        cModule *physicalProcess = grandFatherNode->getModuleByPath("SensorNetwork.physicalProcess[0]");
+        PersonsPhysicalProcess *ppp = check_and_cast<PersonsPhysicalProcess *>(physicalProcess);
+
+        ppp->updateGUI();
+	}
 }
 
 void ResourceManager::calculateEnergySpent()
@@ -129,6 +146,11 @@ double ResourceManager::getCPUClockDrift(void)
 	return (1.0f + cpuClockDrift);
 }
 
+int ResourceManager::getLightIntensity(void)
+{
+    return this->lightIntensity;
+}
+
 void ResourceManager::consumeEnergy(double amount)
 {
 	Enter_Method("consumeEnergy(double amount)");
@@ -182,22 +204,33 @@ void ResourceManager::RamFree(int numBytes)
  */
 void ResourceManager::changeLightIntensity(bool increase)
 {
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Enter in changeLightIntensity function" << endl;
+    ev << "[Sensor Node #" << getParentModule()->getIndex() << "::ResourceManage::changeLightIntensity] Enter in changeLightIntensity function" << endl;
 
     string displayString;
 
     // 1st - Check if boolean is true or not
     if(increase)
     {
-        ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Increase msg receive. We gonna put the light on" << endl;
-        this->lightIntensity = 1;
-        displayString = "status/yellow_25";
+        ev << "[Sensor Node #" << getParentModule()->getIndex() << "::ResourceManage::changeLightIntensity] Increase msg receive. We gonna put the light on" << endl;
+        this->lightIntensity = 2;
+        displayString = "status/yellow_25_alt";
     }
     else
     {
-        ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Resource Module] Light intensity gonna decrease" << endl;
-        this->lightIntensity = 0;
-        displayString = "status/off_25";
+        // 1st - Diminui-se a intensidade
+        this->lightIntensity--;
+
+        // 2nd - Vamos verificar como temos de preencher o GUI
+        if (this->lightIntensity)
+        {
+            ev << "[Sensor Node #" << getParentModule()->getIndex() << "::ResourceManager::changeLightIntensity] lightIntesity = 1" << endl;
+            displayString = "status/yellow_mid_25";
+        }
+        else
+        {
+            ev << "[Sensor Node #" << getParentModule()->getIndex() << "::ResourceManager::changeLightIntensity] lightIntesity = 0" << endl;
+            displayString = "status/off_25";
+        }
     }
 
     // Put in GUI

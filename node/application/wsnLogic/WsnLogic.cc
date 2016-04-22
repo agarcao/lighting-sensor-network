@@ -4,6 +4,10 @@ Define_Module(WsnLogic);
 
 void WsnLogic::startup()
 {
+    // Assign o Resource Module
+    cModule *parent = this->getParentModule();
+    resMgrModule = check_and_cast <ResourceManager*>(parent->getSubmodule("ResourceManager"));
+
     maxSampleInterval = ((double)par("maxSampleInterval")) / 1000.0;
     minSampleInterval = ((double)par("minSampleInterval")) / 1000.0;
     currSentSampleSN = 0;
@@ -13,12 +17,15 @@ void WsnLogic::startup()
     // Set node ID
     this->self = this->getParentModule()->getIndex();
 
+    // Parametros necessários para a lógica da luz
     this->timeToDiminishLightIntensity = par("timeToDiminishLightIntensity");
+    this->nearObstacle = this->getAncestorPar("nearObstacle");
 
+    // Parametros para as features do Nó
     this->coneLightingIsActive = par("coneLightingIsActive");
     this->radiousLighting = par("radiousLighting");
 
-    this->timeToDeleteMovementDirection = 1.5;
+    this->timeToDeleteMovementDirection = 1.5; // Tempo (em seg) para apagar uma direção de movimento da list 'movementDirections'
 
     // Set o nós vizinhos
     /*
@@ -521,16 +528,28 @@ void WsnLogic::handleSensorReading(SensorReadingMessage * rcvReading)
  */
 void WsnLogic::handleSelfEvent()
 {
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Receive a diminishLightIntensityEvent. Let send info to Resource Module" << endl;
+    ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSelfEvent] Entrei na função" << endl;
+
+    // 1st - Get o lightIntesity
+    int lighIntensity = this->resMgrModule->getLightIntensity();
 
     // Send msg to Resource Module
     ostringstream s;
-    s << "decreaseLightSensor#" << getParentModule()->getIndex();
+    s << "decreaseLightSensor#" << this->self;
     string msg = s.str();
     ResourceManagerMessage *resourceManagerMsg = new ResourceManagerMessage(msg.c_str(), RESOURCE_MANAGER_LIGHT);
     send(resourceManagerMsg, "toResourceManager");
 
-    ev << "[Sensor Node #" << getParentModule()->getIndex() << " - Application Module] Msg to diminish the light intensity send to Resource Module" << endl;
+    ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSelfEvent] Vou enviar msg p/ o decrease da luz" << endl;
+
+    // Só iremos por novamente o timer para apagar a luz se esta tiver agr intensidade 2 e não tiver perto dum obstaculo
+    if (lighIntensity == 2 && !this->nearObstacle)
+    {
+        ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSelfEvent] Vou ainda colocar o timer para novo decrease porque a luz ainda tá acesa e o nó não está perto de obstaculos" << endl;
+        setTimer(WsnLogicTimers::DIMINISH_LIGHT, this->timeToDiminishLightIntensity);
+    }
+
+    ev << "[Sensor Node #" << this->self << "::Application Module::WsnLogic::handleSelfEvent] Sai na função" << endl;
 }
 
 void WsnLogic::turnOnTheLight()

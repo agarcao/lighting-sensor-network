@@ -34,7 +34,7 @@ simple ResourceManager {
 	double baselineNodePower = default (6);	// periodic energy consumption of node, in mWatts
 	double periodicEnergyCalculationInterval = default (1000);	// interval for energy calculation, in msec     
 	
-	int lightIntensity = default(0); // Says what is the intensity of the actuator (light)
+	//int lightIntensity = default(0); // Says what is the intensity of the actuator (light)
  gates:
 	output toSensorDevManager;
 	output toApplication;

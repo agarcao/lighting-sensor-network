@@ -37,7 +37,13 @@ enum WsnLogicTimers {
 
 class WsnLogic: public VirtualApplication {
  private:
+
+    ResourceManager *resMgrModule; // Pointer p/ o Resource Mangager deste nó (essencial para saber qual a intensidade da luz)
+
+    // Parametros necessários para a lógica da luz
     int timeToDiminishLightIntensity;   // Time (in sec) for light to diminish its intensity
+    int lightIntensity;                 // Diz-nos em que intensidade de luz estamos no momento (0 - Apagada; 1 - Media luz; 2 - Máxima intensidade)
+    bool nearObstacle;                  // Diz-nos se este nó está perto dum obstaculo (se tiver a luz nunca deve estar apagada)
 
     double maxSampleInterval;
     double minSampleInterval;

@@ -35,7 +35,6 @@ class ResourceManager: public CastaliaModule {
 	double currentNodePower;
 	simtime_t timeOfLastCalculation;
 	double periodicEnergyCalculationInterval;
-	int lightIntensity;
 
 	/*--- Custom class parameters ---*/
 	double remainingEnergy;
@@ -45,6 +44,10 @@ class ResourceManager: public CastaliaModule {
 
 	cMessage *energyMsg;
 	bool disabled;
+
+	// .ini Parameters
+	int lightIntensity;
+	bool nearObstacle;
 
  protected:
 	virtual void initialize();
@@ -60,6 +63,7 @@ class ResourceManager: public CastaliaModule {
 	void destroyNode(void);
 	int RamStore(int numBytes);
 	void RamFree(int numBytes);
+	int getLightIntensity(void);
 };
 
 #endif				// _RESOURCEGENERICMANAGER_H_

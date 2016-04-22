@@ -37,6 +37,8 @@ module Node {
     	int numHorizontalCells;
    		int numVerticalCells;
    		
+   		bool nearObstacle = default(false); // Diz-nos se o nó está perto dum obstaculo ou não (Tem de estar aqui pois tanto o WSNLogic como o ResourceManager precisa disto)
+   		
  	gates:
     	output toWirelessChannel;
     	output toPhysicalProcess[];
