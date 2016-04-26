@@ -49,6 +49,8 @@ INCLUDE_PATH = \
     -Inode/mobilityManager/noMobilityManager \
     -Inode/resourceManager \
     -Inode/sensorManager \
+    -Iobstacles \
+    -Iobstacles/walls \
     -IpersonNode \
     -IphysicalProcess \
     -IphysicalProcess/carsPhysicalProcess \
@@ -98,6 +100,7 @@ OBJS = \
     $O/node/mobilityManager/noMobilityManager/NoMobilityManager.o \
     $O/node/resourceManager/ResourceManager.o \
     $O/node/sensorManager/SensorManager.o \
+    $O/obstacles/walls/Wall.o \
     $O/personNode/PersonNode.o \
     $O/physicalProcess/carsPhysicalProcess/CarsPhysicalProcess.o \
     $O/physicalProcess/customizablePhysicalProcess/CustomizablePhysicalProcess.o \
@@ -255,6 +258,8 @@ clean:
 	$(Q)-rm -f node/mobilityManager/noMobilityManager/*_m.cc node/mobilityManager/noMobilityManager/*_m.h
 	$(Q)-rm -f node/resourceManager/*_m.cc node/resourceManager/*_m.h
 	$(Q)-rm -f node/sensorManager/*_m.cc node/sensorManager/*_m.h
+	$(Q)-rm -f obstacles/*_m.cc obstacles/*_m.h
+	$(Q)-rm -f obstacles/walls/*_m.cc obstacles/walls/*_m.h
 	$(Q)-rm -f personNode/*_m.cc personNode/*_m.h
 	$(Q)-rm -f physicalProcess/*_m.cc physicalProcess/*_m.h
 	$(Q)-rm -f physicalProcess/carsPhysicalProcess/*_m.cc physicalProcess/carsPhysicalProcess/*_m.h
@@ -267,7 +272,7 @@ cleanall: clean
 
 depend:
 	$(qecho) Creating dependencies...
-	$(Q)$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc Parameters/*.cc Parameters/MAC/*.cc Parameters/PhysicalProcess/*.cc Parameters/Radio/*.cc Parameters/SensorDevice/*.cc Parameters/WirelessChannel/*.cc Parameters/WirelessChannel/BANmodels/*.cc helpStructures/*.cc node/*.cc node/application/*.cc node/application/bridgeTest/*.cc node/application/connectivityMap/*.cc node/application/simpleAggregation/*.cc node/application/throughputTest/*.cc node/application/valuePropagation/*.cc node/application/valueReporting/*.cc node/application/wsnLogic/*.cc node/communication/*.cc node/communication/mac/*.cc node/communication/mac/baselineBanMac/*.cc node/communication/mac/bypassMac/*.cc node/communication/mac/mac802154/*.cc node/communication/mac/tMac/*.cc node/communication/mac/tunableMac/*.cc node/communication/radio/*.cc node/communication/routing/*.cc node/communication/routing/bypassRouting/*.cc node/communication/routing/multipathRingsRouting/*.cc node/mobilityManager/*.cc node/mobilityManager/lineMobilityManager/*.cc node/mobilityManager/noMobilityManager/*.cc node/resourceManager/*.cc node/sensorManager/*.cc personNode/*.cc physicalProcess/*.cc physicalProcess/carsPhysicalProcess/*.cc physicalProcess/customizablePhysicalProcess/*.cc physicalProcess/personsPhysicalProcess/*.cc wirelessChannel/*.cc
+	$(Q)$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc Parameters/*.cc Parameters/MAC/*.cc Parameters/PhysicalProcess/*.cc Parameters/Radio/*.cc Parameters/SensorDevice/*.cc Parameters/WirelessChannel/*.cc Parameters/WirelessChannel/BANmodels/*.cc helpStructures/*.cc node/*.cc node/application/*.cc node/application/bridgeTest/*.cc node/application/connectivityMap/*.cc node/application/simpleAggregation/*.cc node/application/throughputTest/*.cc node/application/valuePropagation/*.cc node/application/valueReporting/*.cc node/application/wsnLogic/*.cc node/communication/*.cc node/communication/mac/*.cc node/communication/mac/baselineBanMac/*.cc node/communication/mac/bypassMac/*.cc node/communication/mac/mac802154/*.cc node/communication/mac/tMac/*.cc node/communication/mac/tunableMac/*.cc node/communication/radio/*.cc node/communication/routing/*.cc node/communication/routing/bypassRouting/*.cc node/communication/routing/multipathRingsRouting/*.cc node/mobilityManager/*.cc node/mobilityManager/lineMobilityManager/*.cc node/mobilityManager/noMobilityManager/*.cc node/resourceManager/*.cc node/sensorManager/*.cc obstacles/*.cc obstacles/walls/*.cc personNode/*.cc physicalProcess/*.cc physicalProcess/carsPhysicalProcess/*.cc physicalProcess/customizablePhysicalProcess/*.cc physicalProcess/personsPhysicalProcess/*.cc wirelessChannel/*.cc
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/broadcast_m.o: broadcast_m.cc \
@@ -700,6 +705,12 @@ $O/node/sensorManager/SensorManager.o: node/sensorManager/SensorManager.cc \
 	wirelessChannel/WirelessChannelMessages_m.h
 $O/node/sensorManager/SensorManagerMessage_m.o: node/sensorManager/SensorManagerMessage_m.cc \
 	node/sensorManager/SensorManagerMessage_m.h
+$O/obstacles/walls/Wall.o: obstacles/walls/Wall.cc \
+	CastaliaMessages.h \
+	helpStructures/CastaliaModule.h \
+	helpStructures/DebugInfoWriter.h \
+	node/resourceManager/ResourceManagerMessage_m.h \
+	obstacles/walls/Wall.h
 $O/personNode/PersonNode.o: personNode/PersonNode.cc \
 	CastaliaMessages.h \
 	helpStructures/CastaliaModule.h \

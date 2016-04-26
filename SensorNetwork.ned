@@ -18,11 +18,13 @@ network SensorNetwork {
     
     	int numNodes;						// the number of sensor nodes
     	int numPersons;						// the number of person nodes
+    	int numObstacles;					// the number of obstacles
     
     	string deployment = default ("");
     
     	int numPhysicalProcesses = default (1);
     	string physicalProcessName = default ("PersonsPhysicalProcess");
+    	
     	string debugInfoFileName = default ("Castalia-Trace.txt");
     	
     	int horizontal_cells = default(10);
@@ -32,6 +34,8 @@ network SensorNetwork {
     	// Argumentos necessários para a criação do mapa
         int field_x = horizontal_cells * cell_size; // the length of the deployment field
         int field_y = vertical_cells * cell_size; // the width of the deployment field
+        
+        string obstaclesName = default ("Wall");
     	
     	// Com argumentos vindos do omnet.ini
         @display("bgb=$field_x,$field_y,#FFF;bgg=$cell_size,1;");
@@ -78,6 +82,10 @@ network SensorNetwork {
     	        @display("i=block/user_vs;is=vs;");
 	        gates:        		
         		toPhysicalProcess[numPhysicalProcesses];
+    	}
+    	
+    	obstacle[numObstacles]: <obstaclesName> like wsn_lighting.obstacles.iObstacle
+    	{
     	}
 
  connections:
