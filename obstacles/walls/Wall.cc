@@ -10,7 +10,7 @@ Define_Module(Wall);
 
 void Wall::initialize()
 {
-    // TODO: Temos que posicionar a Wall
+    // Temos que posicionar a Wall
     // 1. Precisamos do nuero de nó (que por sua vez tbm nos dizem qtas celulas existem) para ver em qual delas fazemos o display do obstaculo
     this->numNodes = this->getAncestorPar("numNodes");
 
@@ -37,6 +37,7 @@ void Wall::initialize()
     // 3.2. Dependendo agora da posição temos que fazer modificações
     int heigh = 1;
     int witdh = 1;
+    int divisionCellID = -1; // Vai nos dizer qual é a cellID que esta depois do obstaculo
 
     switch (wallPosition)
     {
@@ -44,6 +45,13 @@ void Wall::initialize()
         {
             witdh = cellSize;
             x = x + (cellSize / 2);
+
+            if (cellToPutWall - horizontalCells >= 0)
+            {
+                divisionCellID = cellToPutWall - horizontalCells;
+            }
+
+            this->wallPosition = 0;
             break;
         }
         case 1:
@@ -51,6 +59,12 @@ void Wall::initialize()
             heigh = cellSize;
             x = x + cellSize;
             y = y + (cellSize / 2);
+
+            if (((cellToPutWall + 1) % horizontalCells) != 0)
+            {
+                divisionCellID = cellToPutWall + 1;
+            }
+            this->wallPosition = 2;
             break;
         }
         case 2:
@@ -58,12 +72,24 @@ void Wall::initialize()
             witdh = cellSize;
             y = y + cellSize;
             x = x + (cellSize / 2);
+
+            if (cellToPutWall + horizontalCells < (horizontalCells * verticalCells))
+            {
+                divisionCellID = cellToPutWall + horizontalCells;
+            }
+            this->wallPosition = 4;
             break;
         }
         case 3:
         {
             heigh = cellSize;
             y = y + (cellSize / 2);
+
+            if ((cellToPutWall % horizontalCells) != 0)
+            {
+                divisionCellID = cellToPutWall - 1;
+            }
+            this->wallPosition = 6;
             break;
         }
     }
@@ -90,6 +116,15 @@ void Wall::initialize()
     // Set y
     sprintf(s,"%d", heigh);
     nodeDS.setTagArg("b",1, s);
+
+    // Vamos por os valores calculados em argumentos do objecto
+    this->medianX = x;
+    this->medianY = y;
+
+    this->betweenCells[0] = cellToPutWall;
+    this->betweenCells[1] = divisionCellID;
+
+    ev << "[Obstaculo #" << this->getIndex() << "::Wall::initialize] Ficou entre cell #" << cellToPutWall << " e #" << divisionCellID << endl;
 }
 
 void Wall::handleMessage(cMessage *msg)

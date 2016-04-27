@@ -40,15 +40,7 @@ network SensorNetwork {
     	// Com argumentos vindos do omnet.ini
         @display("bgb=$field_x,$field_y,#FFF;bgg=$cell_size,1;");
 
-     submodules:
-    	wirelessChannel:wsn_lighting.wirelessChannel.WirelessChannel 
-    	{
-    	    parameters:
-    	        @display("i=block/circle_vs;p=$field_x,-20;");
-    	 	gates:
-        		toNode[numNodes];
-        		fromNode[numNodes];
-    	} 
+     submodules:	
 
     	physicalProcess[numPhysicalProcesses]: <physicalProcessName> like wsn_lighting.physicalProcess.iPhysicalProcess
     	{
@@ -87,6 +79,15 @@ network SensorNetwork {
     	obstacle[numObstacles]: <obstaclesName> like wsn_lighting.obstacles.iObstacle
     	{
     	}
+    	
+    	wirelessChannel:wsn_lighting.wirelessChannel.WirelessChannel 
+    	{
+    	    parameters:
+    	        @display("i=block/circle_vs;p=$field_x,-20;");
+    	 	gates:
+        		toNode[numNodes];
+        		fromNode[numNodes];
+    	} 
 
  connections:
 	for i = 0..numNodes - 1 {

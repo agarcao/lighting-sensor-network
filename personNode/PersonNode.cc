@@ -4,6 +4,7 @@
  */
 
 #include "PersonNode.h"
+#include "Wall.h"
 #include "PersonsPhysicalProcess.h"
 
 // The module class needs to be registered with OMNeT++
@@ -11,9 +12,6 @@ Define_Module(PersonNode);
 
 void PersonNode::initialize()
 {
-    int field_x = this->par("field_x");
-    int field_y = this->par("field_y");
-
     // Parametros que vêm do modulo
     this->timeBetweenMoves = par("timeBetweenMoves");
     this->moveVelocity = par("moveVelocity");
@@ -69,15 +67,17 @@ void PersonNode::handleMessage(cMessage *msg)
         this->movementDirection = this->changeDirection();
         ev << "[Person Node #" << this->getIndex() << "::handleMessage] Direcao #" << this->movementDirection << endl;
 
-        // TODO: Tem que se verificar se com o movimento a pessoa (personNode) não ultrapassa os limites do field. Se ultrapassar tem que mudar a direção do movimento
+        // Tem que se verificar se com o movimento a pessoa (personNode) não ultrapassa os limites do field.
+        // Além disso também precisamos de ver se não bate num obstaculo. Se ultrapassar ou bater tem que mudar a direção do movimento
         while (this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity) > field_x
                 || this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity) < 0
                 || this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity) > field_y
-                || this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity) < 0)
+                || this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity) < 0
+                || this->bumpObstacle())
         {
             ev << "[Person Node #" << this->getIndex() << "::handleMessage] xCoord: " << this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity) << endl;
             ev << "[Person Node #" << this->getIndex() << "::handleMessage] yCoor: " << this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity) << endl;
-            ev << "[Person Node #" << this->getIndex() << "::handleMessage] Com esta direção saimos do field" << endl;
+            ev << "[Person Node #" << this->getIndex() << "::handleMessage] Com esta direção saimos do field ou batemos num obstaculo" << endl;
             this->movementDirection = this->changeDirection(true);
             ev << "[Person Node #" << this->getIndex() << "::handleMessage] Movement direction é agr #" << this->movementDirection << endl;
         }
@@ -196,3 +196,49 @@ int PersonNode::getDirectionY(int direction)
         }
     }
 }
+
+
+
+// Tell us if with the movement we bump an obstacle or not
+bool PersonNode::bumpObstacle(void)
+{
+    // 1. Tenho que descobrir em que celula é que estou inicialmente e para onde vou
+    // 1.1. Temos que ir buscar os parametros necessários a SensorNetwork
+    int cellSize = this->getAncestorPar("cell_size");
+    int horizontalCells = this->getAncestorPar("horizontal_cells");
+
+    int cellInit = (this->yCoor / cellSize) * horizontalCells + (this->xCoor / cellSize);
+    int cellEnd = ((this->yCoor + (this->getDirectionY(this->movementDirection) * this->moveVelocity)) / cellSize) * horizontalCells +
+            ((this->xCoor + (this->getDirectionX(this->movementDirection) * this->moveVelocity)) / cellSize);
+
+    ev << "[Person Node #" << this->getIndex() << "::bumpObstacle] Estou na cell #" << cellInit << " e vou para a cell #" << cellEnd << endl;
+
+    // 2. Agora que já temos as cell de onde o nó vem e para onde o nó vai vamos ver se bate em algum obstaculo
+    // 2.1. Temos que ter o numero de obstaculos que existem na simulação
+    int numObstacles = this->getAncestorPar("numObstacles");
+
+    int i;
+    cModule *parent;
+    Wall *wall;
+
+    for (i = 0; i < numObstacles; i++)
+    {
+        // 2.2. Vamos buscar o modulo
+        parent = this->getParentModule();
+        wall = check_and_cast <Wall*>(parent->getSubmodule("obstacle", i));
+
+        // 2.3. Vamos checkar se existe o bump
+        if ((wall->betweenCells[0] == cellInit && wall->betweenCells[1] == cellEnd) ||
+                (wall->betweenCells[1] == cellInit && wall->betweenCells[0] == cellEnd))
+        {
+            ev << "[Person Node #" << this->getIndex() << "::bumpObstacle] O obstaculo #" << i << " está no meu caminho" << endl;
+            return true;
+        }
+    }
+
+    ev << "[Person Node #" << this->getIndex() << "::bumpObstacle] Não existem obstaculos no meu caminho" << endl;
+    return false;
+}
+
+
+

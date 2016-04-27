@@ -11,6 +11,7 @@
  ****************************************************************************/
 
 #include "WirelessChannel.h"
+#include "Wall.h"
 
 Define_Module(WirelessChannel);
 
@@ -291,6 +292,51 @@ void WirelessChannel::initialize(int stage)
 
 	trace() << "Time for Wireless Channel module initialization: " <<
 	    (double)(clock() - startTime) / CLOCKS_PER_SEC << "secs";
+
+	// TODO: Aqui é o melhor sitio para ficar os updates ao path loss depedendo dos obstaculos
+	// 1. Temos que inicializar uma matriz de numNodes * 8 (os pontos cardeais) a -1
+	int numNodes = this->getAncestorPar("numNodes");
+	//bool pathLossMatrix[numNodes][8] = {false};
+
+	// 2. Vamos percorrer todos os obstaculos e fazer o update no pathLoss
+	int numObstacles = this->getAncestorPar("numObstacles");
+
+    int i;
+    cModule *parent;
+    Wall *wall;
+
+    ev << "[WirelessChannel::initialize] Existem #" << numObstacles << " obstaculos. Vamos ver como afectam o pathLoss" << endl;
+
+    for (i = 0; i < numObstacles; i++)
+    {
+        // 2.2. Vamos buscar o modulo
+        parent = this->getParentModule();
+        wall = check_and_cast <Wall*>(parent->getSubmodule("obstacle", i));
+
+        ev << "[WirelessChannel::initialize] Estamos no obstaculo #" << i << " que esta na cell #" << wall->betweenCells[0] << endl;
+
+        // 2.4. Só valerá a pena actualizar o pathloss se a outra cell n estiver fora do field
+        if (wall->betweenCells[1] != -1)
+        {
+            ev << "[WirelessChannel::initialize] Existe nó vizinho com ID #" << wall->betweenCells[1] << ". Vamos fazer o update do pathLoss o nó #" <<
+                    wall->betweenCells[1] << " para o #" << wall->betweenCells[0] << endl;
+            // 2.5. Temos de ir atualizar o path do betweenCells[1] para o betweenCells[0] e ver se n tem de ser posto tbm o ponto cardeal secundário
+            this->updatePathLossElement(wall->betweenCells[1], wall->betweenCells[0], 150);
+            //pathLossMatrix[wall->betweenCells[1]][(wall->wallPosition + 4) % 8] = true;
+
+            // 2.5. Atualizamos sempre o do betweenCells[0]
+            ev << "[WirelessChannel::initialize] Vamos fazer o update no pathLoss p/ o nó #" << wall->betweenCells[0] << " para o #" << wall->betweenCells[1] << endl;
+            this->updatePathLossElement(wall->betweenCells[0], wall->betweenCells[1], 150);
+            //pathLossMatrix[wall->betweenCells[0]][wall->wallPosition] = true;
+        }
+        else
+        {
+            ev << "[WirelessChannel::initialize] Não vale a pena atualizar o pathLoss porque o nó #" << wall->betweenCells[0] << " n tem vizinho." << endl;
+        }
+    }
+
+    trace() << "Time for Wireless Channel module initialization: " <<
+            (double)(clock() - startTime) / CLOCKS_PER_SEC << "secs";
 }
 
 /*****************************************************************************
@@ -436,6 +482,8 @@ void WirelessChannel::handleMessage(cMessage * msg)
                     ev << "[WirelessChannel::handleMessage::WC_SIGNAL_START] O nó iterado é o mesmo que mandou o broadcast. Não enviamos" << endl;
                     continue;
                 }
+                // TODO: Precisamos ainda de perceber se não há obstaculos nesta celula
+
                 receptioncount++;
                 WirelessChannelSignalBegin *signalMsgCopy = signalMsg->dup();
                 signalMsgCopy->setPower_dBm(currentSignalReceived);

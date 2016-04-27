@@ -41,6 +41,7 @@ class PersonNode : public cSimpleModule
         int changeDirection(bool force = false);
         int getDirectionX(int direction);
         int getDirectionY(int direction);
+        bool bumpObstacle(void);
     public:
         // Node position
         int xCoor;

@@ -719,6 +719,7 @@ $O/personNode/PersonNode.o: personNode/PersonNode.cc \
 	node/resourceManager/ResourceManagerMessage_m.h \
 	node/sensorManager/SensorManager.h \
 	node/sensorManager/SensorManagerMessage_m.h \
+	obstacles/walls/Wall.h \
 	personNode/PersonNode.h \
 	physicalProcess/PhysicalProcessMessage_m.h \
 	physicalProcess/personsPhysicalProcess/PersonsPhysicalProcess.h \
@@ -757,6 +758,7 @@ $O/wirelessChannel/WirelessChannel.o: wirelessChannel/WirelessChannel.cc \
 	helpStructures/DebugInfoWriter.h \
 	node/mobilityManager/VirtualMobilityManager.h \
 	node/resourceManager/ResourceManagerMessage_m.h \
+	obstacles/walls/Wall.h \
 	wirelessChannel/WirelessChannel.h \
 	wirelessChannel/WirelessChannelMessages_m.h \
 	wirelessChannel/WirelessChannelTemporal.h
