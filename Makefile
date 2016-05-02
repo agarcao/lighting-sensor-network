@@ -756,9 +756,25 @@ $O/wirelessChannel/WirelessChannel.o: wirelessChannel/WirelessChannel.cc \
 	CastaliaMessages.h \
 	helpStructures/CastaliaModule.h \
 	helpStructures/DebugInfoWriter.h \
+	helpStructures/TimerService.h \
+	helpStructures/TimerServiceMessage_m.h \
+	node/application/ApplicationPacket_m.h \
+	node/application/VirtualApplication.h \
+	node/application/wsnLogic/WsnLogic.h \
+	node/application/wsnLogic/WsnLogicPacket_m.h \
+	node/communication/mac/MacPacket_m.h \
+	node/communication/radio/Radio.h \
+	node/communication/radio/RadioControlMessage_m.h \
+	node/communication/radio/RadioSupportFunctions.h \
 	node/mobilityManager/VirtualMobilityManager.h \
+	node/resourceManager/ResourceManager.h \
 	node/resourceManager/ResourceManagerMessage_m.h \
+	node/sensorManager/SensorManager.h \
+	node/sensorManager/SensorManagerMessage_m.h \
 	obstacles/walls/Wall.h \
+	personNode/PersonNode.h \
+	physicalProcess/PhysicalProcessMessage_m.h \
+	physicalProcess/personsPhysicalProcess/PersonsPhysicalProcess.h \
 	wirelessChannel/WirelessChannel.h \
 	wirelessChannel/WirelessChannelMessages_m.h \
 	wirelessChannel/WirelessChannelTemporal.h

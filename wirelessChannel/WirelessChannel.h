@@ -18,6 +18,10 @@
 #include "VirtualMobilityManager.h"
 #include "CastaliaModule.h"
 
+#include "WsnLogic.h"
+#include "Wall.h"
+#include "PersonsPhysicalProcess.h"
+
 #include "time.h"
 #include <list>
 

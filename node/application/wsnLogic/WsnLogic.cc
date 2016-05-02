@@ -49,92 +49,92 @@ void WsnLogic::startup()
     int northNodeID = this->self - numHorizontalCells;
     if (northNodeID < 0)
     {
-        this->neighborsNodesIds[PersonMovementDirections::NORTH] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::NORTH] = -1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::NORTH] = northNodeID;
+        this->neighborsNodesIds[NodeNeighborsDirections::NORTH] = northNodeID;
     }
 
     // 2.2. Este
     if (((this->self + 1) % numHorizontalCells) == 0)
     {
-        this->neighborsNodesIds[PersonMovementDirections::EAST] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::EAST] = -1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::EAST] = (this->self + 1);
+        this->neighborsNodesIds[NodeNeighborsDirections::EAST] = (this->self + 1);
     }
 
     // 2.3. Sul
     int southNodeID = this->self + numHorizontalCells;
     if (southNodeID >= (numHorizontalCells * numVerticalCells))
     {
-        this->neighborsNodesIds[PersonMovementDirections::SOUTH] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::SOUTH] = -1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::SOUTH] = southNodeID;
+        this->neighborsNodesIds[NodeNeighborsDirections::SOUTH] = southNodeID;
     }
 
     // 2.4. Oeste
     if ((this->self % numHorizontalCells) == 0)
     {
-        this->neighborsNodesIds[PersonMovementDirections::WEST] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::WEST] = -1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::WEST] = (this->self - 1);
+        this->neighborsNodesIds[NodeNeighborsDirections::WEST] = (this->self - 1);
     }
 
     // 2.5. NordEste
-    if (this->neighborsNodesIds[PersonMovementDirections::NORTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::EAST] != -1)
+    if (this->neighborsNodesIds[NodeNeighborsDirections::NORTH] != -1 && this->neighborsNodesIds[NodeNeighborsDirections::EAST] != -1)
     {
-        this->neighborsNodesIds[PersonMovementDirections::NORTHEAST] = this->neighborsNodesIds[PersonMovementDirections::NORTH] + 1;
+        this->neighborsNodesIds[NodeNeighborsDirections::NORTHEAST] = this->neighborsNodesIds[NodeNeighborsDirections::NORTH] + 1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::NORTHEAST] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::NORTHEAST] = -1;
     }
 
     // 2.6. NordOeste
-    if (this->neighborsNodesIds[PersonMovementDirections::NORTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::WEST] != -1)
+    if (this->neighborsNodesIds[NodeNeighborsDirections::NORTH] != -1 && this->neighborsNodesIds[NodeNeighborsDirections::WEST] != -1)
     {
-        this->neighborsNodesIds[PersonMovementDirections::NORTHWEST] = this->neighborsNodesIds[PersonMovementDirections::NORTH] - 1;
+        this->neighborsNodesIds[NodeNeighborsDirections::NORTHWEST] = this->neighborsNodesIds[NodeNeighborsDirections::NORTH] - 1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::NORTHWEST] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::NORTHWEST] = -1;
     }
 
     // 2.7. SudEste
-    if (this->neighborsNodesIds[PersonMovementDirections::SOUTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::EAST] != -1)
+    if (this->neighborsNodesIds[NodeNeighborsDirections::SOUTH] != -1 && this->neighborsNodesIds[NodeNeighborsDirections::EAST] != -1)
     {
-        this->neighborsNodesIds[PersonMovementDirections::SOUTHEAST] = this->neighborsNodesIds[PersonMovementDirections::SOUTH] + 1;
+        this->neighborsNodesIds[NodeNeighborsDirections::SOUTHEAST] = this->neighborsNodesIds[NodeNeighborsDirections::SOUTH] + 1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::SOUTHEAST] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::SOUTHEAST] = -1;
     }
 
     // 2.8. SudOeste
-    if (this->neighborsNodesIds[PersonMovementDirections::SOUTH] != -1 && this->neighborsNodesIds[PersonMovementDirections::WEST] != -1)
+    if (this->neighborsNodesIds[NodeNeighborsDirections::SOUTH] != -1 && this->neighborsNodesIds[NodeNeighborsDirections::WEST] != -1)
     {
-        this->neighborsNodesIds[PersonMovementDirections::SOUTHWEST] = this->neighborsNodesIds[PersonMovementDirections::SOUTH] - 1;
+        this->neighborsNodesIds[NodeNeighborsDirections::SOUTHWEST] = this->neighborsNodesIds[NodeNeighborsDirections::SOUTH] - 1;
     }
     else
     {
-        this->neighborsNodesIds[PersonMovementDirections::SOUTHWEST] = -1;
+        this->neighborsNodesIds[NodeNeighborsDirections::SOUTHWEST] = -1;
     }
 
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORTE: #" << this->neighborsNodesIds[PersonMovementDirections::NORTH] << endl;
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORDESTE: #" << this->neighborsNodesIds[PersonMovementDirections::NORTHEAST] << endl;
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho ESTE: #" << this->neighborsNodesIds[PersonMovementDirections::EAST] << endl;
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUDESTE: #" << this->neighborsNodesIds[PersonMovementDirections::SOUTHEAST] << endl;
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUL: #" << this->neighborsNodesIds[PersonMovementDirections::SOUTH] << endl;
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUDOESTE: #" << this->neighborsNodesIds[PersonMovementDirections::SOUTHWEST] << endl;
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho OESTE: #" << this->neighborsNodesIds[PersonMovementDirections::WEST] << endl;
-    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORDOESTE: #" << this->neighborsNodesIds[PersonMovementDirections::NORTHWEST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORTE: #" << this->neighborsNodesIds[NodeNeighborsDirections::NORTH] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORDESTE: #" << this->neighborsNodesIds[NodeNeighborsDirections::NORTHEAST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho ESTE: #" << this->neighborsNodesIds[NodeNeighborsDirections::EAST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUDESTE: #" << this->neighborsNodesIds[NodeNeighborsDirections::SOUTHEAST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUL: #" << this->neighborsNodesIds[NodeNeighborsDirections::SOUTH] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho SUDOESTE: #" << this->neighborsNodesIds[NodeNeighborsDirections::SOUTHWEST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho OESTE: #" << this->neighborsNodesIds[NodeNeighborsDirections::WEST] << endl;
+    ev << "[Node #" << this->self << "::WsnLogic::startup] Nó vizinho NORDOESTE: #" << this->neighborsNodesIds[NodeNeighborsDirections::NORTHWEST] << endl;
     //setTimer(REQUEST_SAMPLE, maxSampleInterval * randomBackoffIntervalFraction);
 }
 
@@ -594,44 +594,44 @@ int WsnLogic::getMovementDirectionFromSenderNodeID(int senderNodeID)
     {
         switch (key)
         {
-            case PersonMovementDirections::NORTH:
+            case NodeNeighborsDirections::NORTH:
             {
-                directionKey = PersonMovementDirections::SOUTH;
+                directionKey = NodeNeighborsDirections::SOUTH;
                 break;
             }
-            case PersonMovementDirections::NORTHEAST:
+            case NodeNeighborsDirections::NORTHEAST:
             {
-                directionKey = PersonMovementDirections::SOUTHWEST;
+                directionKey = NodeNeighborsDirections::SOUTHWEST;
                 break;
             }
-            case PersonMovementDirections::EAST:
+            case NodeNeighborsDirections::EAST:
             {
-                directionKey = PersonMovementDirections::WEST;
+                directionKey = NodeNeighborsDirections::WEST;
                 break;
             }
-            case PersonMovementDirections::SOUTHEAST:
+            case NodeNeighborsDirections::SOUTHEAST:
             {
-                directionKey = PersonMovementDirections::NORTHWEST;
+                directionKey = NodeNeighborsDirections::NORTHWEST;
                 break;
             }
-            case PersonMovementDirections::SOUTH:
+            case NodeNeighborsDirections::SOUTH:
             {
-                directionKey = PersonMovementDirections::NORTH;
+                directionKey = NodeNeighborsDirections::NORTH;
                 break;
             }
-            case PersonMovementDirections::SOUTHWEST:
+            case NodeNeighborsDirections::SOUTHWEST:
             {
-                directionKey = PersonMovementDirections::NORTHEAST;
+                directionKey = NodeNeighborsDirections::NORTHEAST;
                 break;
             }
-            case PersonMovementDirections::WEST:
+            case NodeNeighborsDirections::WEST:
             {
-                directionKey = PersonMovementDirections::EAST;
+                directionKey = NodeNeighborsDirections::EAST;
                 break;
             }
-            case PersonMovementDirections::NORTHWEST:
+            case NodeNeighborsDirections::NORTHWEST:
             {
-                directionKey = PersonMovementDirections::SOUTHEAST;
+                directionKey = NodeNeighborsDirections::SOUTHEAST;
                 break;
             }
         }

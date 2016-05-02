@@ -11,7 +11,6 @@
  ****************************************************************************/
 
 #include "WirelessChannel.h"
-#include "Wall.h"
 
 Define_Module(WirelessChannel);
 
@@ -296,43 +295,657 @@ void WirelessChannel::initialize(int stage)
 	// TODO: Aqui é o melhor sitio para ficar os updates ao path loss depedendo dos obstaculos
 	// 1. Temos que inicializar uma matriz de numNodes * 8 (os pontos cardeais) a -1
 	int numNodes = this->getAncestorPar("numNodes");
-	//bool pathLossMatrix[numNodes][8] = {false};
+	int pathLossMatrix[numNodes][8];
+	memset(pathLossMatrix, -1, sizeof pathLossMatrix);
 
 	// 2. Vamos percorrer todos os obstaculos e fazer o update no pathLoss
 	int numObstacles = this->getAncestorPar("numObstacles");
+	int numHorizontalCells = this->getAncestorPar("horizontal_cells");
+    int numVerticalCells = this->getAncestorPar("vertical_cells");
 
-    int i;
-    cModule *parent;
+    int i, wallPosition;
+    int adjecentNodesID[2];
     Wall *wall;
+
+    cModule *sensorNetwork = this->getParentModule();
 
     ev << "[WirelessChannel::initialize] Existem #" << numObstacles << " obstaculos. Vamos ver como afectam o pathLoss" << endl;
 
     for (i = 0; i < numObstacles; i++)
     {
         // 2.2. Vamos buscar o modulo
-        parent = this->getParentModule();
-        wall = check_and_cast <Wall*>(parent->getSubmodule("obstacle", i));
+        wall = check_and_cast <Wall*>(sensorNetwork->getSubmodule("obstacle", i));
 
         ev << "[WirelessChannel::initialize] Estamos no obstaculo #" << i << " que esta na cell #" << wall->betweenCells[0] << endl;
 
-        // 2.4. Só valerá a pena actualizar o pathloss se a outra cell n estiver fora do field
+        // 2.3. Só valerá a pena actualizar o pathloss se a outra cell n estiver fora do field
         if (wall->betweenCells[1] != -1)
         {
             ev << "[WirelessChannel::initialize] Existe nó vizinho com ID #" << wall->betweenCells[1] << ". Vamos fazer o update do pathLoss o nó #" <<
                     wall->betweenCells[1] << " para o #" << wall->betweenCells[0] << endl;
-            // 2.5. Temos de ir atualizar o path do betweenCells[1] para o betweenCells[0] e ver se n tem de ser posto tbm o ponto cardeal secundário
-            this->updatePathLossElement(wall->betweenCells[1], wall->betweenCells[0], 150);
-            //pathLossMatrix[wall->betweenCells[1]][(wall->wallPosition + 4) % 8] = true;
 
-            // 2.5. Atualizamos sempre o do betweenCells[0]
+            // 2.4. Atualizamos o path do betweenCells[1] para o betweenCells[0]
+            this->updatePathLossElement(wall->betweenCells[1], wall->betweenCells[0], 150);
+            wallPosition = (wall->wallPosition + 4) % 8;
+            pathLossMatrix[wall->betweenCells[1]][wallPosition] = wall->betweenCells[0];
+            ev << "[WirelessChannel::initialize] Meto na matrix pathLoss [" << wall->betweenCells[1] << "][" << wallPosition << "] a cell #"
+                                << wall->betweenCells[0] << endl;
+
+            // TODO: 2.4.1 Vamos ainda verificar se nós adjacentes têm wall na mesma direção. Se tiver temos que atualizar tbm o pathLoss
+            // 2.4.1.2. Vamos agora descobrir qual é a posição da wall e set os nós adjacentes
+            switch (wallPosition)
+            {
+                case 0:
+                case 4:
+                {
+                    // É uma wall a Norte ou Sul por isso temos que ir verificar nos nós vizinhos Este e Oeste
+                    if (((wall->betweenCells[1] + 1) % numHorizontalCells) == 0)
+                    {
+                        adjecentNodesID[0] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[0] = wall->betweenCells[1] + 1;
+                    }
+
+                    if ((wall->betweenCells[1] % numHorizontalCells) == 0)
+                    {
+                        adjecentNodesID[1] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[1] = wall->betweenCells[1] - 1;
+                    }
+
+                    ev << "[WirelessChannel::initialize] É uma wall a NORTE ou SUL por isso os nós adjacentes do nó #" << wall->betweenCells[1]
+                     << " são a ESTE o #" << adjecentNodesID[0] << " e a OESTE o #" <<  adjecentNodesID[1] << endl;
+
+                    if (adjecentNodesID[0] != -1)
+                    {
+                       if (pathLossMatrix[adjecentNodesID[0]][wallPosition] != -1)
+                       {
+                           if(wallPosition == 0) // Wall a NORTE
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                       << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[1], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                    << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                    << adjecentNodesID[0] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                           }
+                           else // Wall a SUL
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[1], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                     << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                     << adjecentNodesID[0] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                           }
+                       }
+                    }
+
+                    if (adjecentNodesID[1] != -1)
+                    {
+                        if (pathLossMatrix[adjecentNodesID[1]][wallPosition] != -1)
+                        {
+                            if(wallPosition == 2) // Wall a NORTE
+                            {
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                        << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                                this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                                this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[1], 150);
+
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                         << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                         << adjecentNodesID[1] << endl;
+
+                                this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition], adjecentNodesID[1], 150);
+                                this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                            }
+                            else // Wall a SUL
+                            {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[1], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                    << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                    << adjecentNodesID[1] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition], adjecentNodesID[1], 150);
+                               this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+                case 2:
+                case 6:
+                    // É uma wall a Norte ou Sul por isso temos que ir verificar nos nós vizinhos Este e Oeste
+                    if (wall->betweenCells[1] - numHorizontalCells < 0)
+                    {
+                        adjecentNodesID[0] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[0] = wall->betweenCells[1] - numHorizontalCells;
+                    }
+
+                    if (wall->betweenCells[1] + numHorizontalCells >= (numHorizontalCells * numVerticalCells))
+                    {
+                        adjecentNodesID[1] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[1] = wall->betweenCells[1] + numHorizontalCells;
+                    }
+
+
+                    ev << "[WirelessChannel::initialize] É uma wall a ESTE ou OESTE por isso os nós adjacentes do nó #" << wall->betweenCells[1]
+                     << " são a NORTE o #" << adjecentNodesID[0] << " e a SUL o #" <<  adjecentNodesID[1] << endl;
+
+                    // 2.5.3. Por fim, temos que verificar se existem (!= -1) e se contêm tbm wall na mesma wallPosition. Se isto for verdade vamos aplicar o pathLoss
+                    if (adjecentNodesID[0] != -1)
+                    {
+                       if (pathLossMatrix[adjecentNodesID[0]][wallPosition] != -1)
+                       {
+                           if(wallPosition == 2) // Wall a ESTE
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                       << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[1], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                       << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                       << adjecentNodesID[0] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                           }
+                           else // Wall a OESTE
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[1], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                      << adjecentNodesID[0] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                           }
+                       }
+                    }
+
+                    if (adjecentNodesID[1] != -1)
+                    {
+                        if (pathLossMatrix[adjecentNodesID[1]][wallPosition] != -1)
+                        {
+                            if(wallPosition == 2) // Wall a ESTE
+                            {
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                        << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                                this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                                this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[1], 150);
+
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                     << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                     << adjecentNodesID[1] << endl;
+
+                                this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition],adjecentNodesID[1], 150);
+                                this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                            }
+                            else // Wall a OESTE
+                            {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[1] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[1], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                    << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[1]][wallPosition] << " e #"
+                                    << adjecentNodesID[1] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][wallPosition],adjecentNodesID[1], 150);
+                               this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[1]][wallPosition], 150);
+                            }
+                        }
+                    }
+
+                    break;
+            }
+
+            // 2.4.2. Vamos verificar se o pontos cardeais secundarios n têm tbm de ser atualizados
+            if (pathLossMatrix[wall->betweenCells[1]][(wallPosition + 2) % 8] != -1)
+            {
+                ev << "[WirelessChannel::initialize] Existe tbm uma wall na posição #" << (wallPosition + 2) % 8 << " da cell #" << wall->betweenCells[1] << endl;
+
+                // Temos outra wall por isso temos que descobrir que nós atualizar no pathloss
+                switch (wallPosition)
+                {
+                    case 0:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Norte e temos uma a Este. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << "e #" << pathLossMatrix[wall->betweenCells[1]][0] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][0] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][0] + 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                    case 2:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Este e temos uma a Sul. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << "e #" << pathLossMatrix[wall->betweenCells[1]][4] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][4] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][4] + 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                    case 4:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Sul e temos uma a Oeste. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << "e #" << pathLossMatrix[wall->betweenCells[1]][4] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][4] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][4] - 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                    case 6:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Oeste e temos uma a Norte. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << "e #" << pathLossMatrix[wall->betweenCells[1]][0] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][0] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][0] - 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                }
+
+            }
+            if (pathLossMatrix[wall->betweenCells[1]][(wallPosition + 6) % 8] != -1)
+            {
+                ev << "[WirelessChannel::initialize] Existe tbm uma wall na posição #" << (wallPosition + 6) % 8 << " da cell #" << wall->betweenCells[1] << endl;
+
+                // Temos outra wall por isso temos que descobrir que nós atualizar no pathloss
+                switch (wallPosition)
+                {
+                    case 0:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Norte e temos uma a Oeste. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << " e #" << pathLossMatrix[wall->betweenCells[1]][0] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][0] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][0] - 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                    case 2:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Este e temos uma a Norte. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << " e #" << pathLossMatrix[wall->betweenCells[1]][0] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][0] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][0] + 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                    case 4:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Sul e temos uma a Este. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << " e #" << pathLossMatrix[wall->betweenCells[1]][4] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][4] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][4] + 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                    case 6:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Oeste e temos uma a Sul. Vamos fazer o pathLoss entre #" << wall->betweenCells[1]
+                           << " e #" << pathLossMatrix[wall->betweenCells[1]][4] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[1], pathLossMatrix[wall->betweenCells[1]][4] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[1]][4] - 1, wall->betweenCells[1], 150);
+                        break;
+                    }
+                }
+            }
+
+            // 2.5. Atualizamos o path do betweenCells[0] para o betweenCells[1]
             ev << "[WirelessChannel::initialize] Vamos fazer o update no pathLoss p/ o nó #" << wall->betweenCells[0] << " para o #" << wall->betweenCells[1] << endl;
             this->updatePathLossElement(wall->betweenCells[0], wall->betweenCells[1], 150);
-            //pathLossMatrix[wall->betweenCells[0]][wall->wallPosition] = true;
+            wallPosition = wall->wallPosition;
+            pathLossMatrix[wall->betweenCells[0]][wallPosition] = wall->betweenCells[1];
+            ev << "[WirelessChannel::initialize] Meto na matrix pathLoss [" << wall->betweenCells[0] << "][" << wallPosition << "] a cell #"
+                    << wall->betweenCells[1] << endl;
+
+            // TODO: 2.5.1 Vamos ainda verificar se nós adjacentes têm wall na mesma direção. Se tiver temos que atualizar tbm o pathLoss
+            // 2.5.1.1. Vamos agora descobrir qual é a posição da wall e set os nós adjacentes
+            switch (wallPosition)
+            {
+                case 0:
+                case 4:
+                {
+                    // É uma wall a Norte ou Sul por isso temos que ir verificar nos nós vizinhos Este e Oeste
+                    if (((wall->betweenCells[0] + 1) % numHorizontalCells) == 0)
+                    {
+                        adjecentNodesID[0] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[0] = wall->betweenCells[0] + 1;
+                    }
+
+                    if ((wall->betweenCells[0] % numHorizontalCells) == 0)
+                    {
+                        adjecentNodesID[1] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[1] = wall->betweenCells[0] - 1;
+                    }
+
+                    ev << "[WirelessChannel::initialize] É uma wall a NORTE ou SUL por isso os nós adjacentes do nó #" << wall->betweenCells[0]
+                     << " são a ESTE o #" << adjecentNodesID[0] << " e a OESTE o #" <<  adjecentNodesID[1] << endl;
+
+                    if (adjecentNodesID[0] != -1)
+                    {
+                       if (pathLossMatrix[adjecentNodesID[0]][wallPosition] != -1)
+                       {
+                           if(wallPosition == 0) // Wall a NORTE
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                       << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[0], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                    << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                    << adjecentNodesID[0] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                           }
+                           else // Wall a SUL
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[0], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                     << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                     << adjecentNodesID[0] << endl;
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                           }
+                       }
+                    }
+
+                    if (adjecentNodesID[1] != -1)
+                    {
+                        if (pathLossMatrix[adjecentNodesID[1]][wallPosition] != -1)
+                        {
+                            if(wallPosition == 2) // Wall a NORTE
+                            {
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                        << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                                this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                                this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[0], 150);
+
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                         << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                         << adjecentNodesID[1] << endl;
+
+                                this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[1], 150);
+                                this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                            }
+                            else // Wall a SUL
+                            {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[0], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                    << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                    << adjecentNodesID[1] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[1], 150);
+                               this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+                case 2:
+                case 6:
+                    // É uma wall a Norte ou Sul por isso temos que ir verificar nos nós vizinhos Este e Oeste
+                    if (wall->betweenCells[0] - numHorizontalCells < 0)
+                    {
+                        adjecentNodesID[0] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[0] = wall->betweenCells[0] - numHorizontalCells;
+                    }
+
+                    if (wall->betweenCells[0] + numHorizontalCells >= (numHorizontalCells * numVerticalCells))
+                    {
+                        adjecentNodesID[1] = -1;
+                    }
+                    else
+                    {
+                        adjecentNodesID[1] = wall->betweenCells[0] + numHorizontalCells;
+                    }
+
+
+                    ev << "[WirelessChannel::initialize] É uma wall a ESTE ou OESTE por isso os nós adjacentes do nó #" << wall->betweenCells[0]
+                     << " são a NORTE o #" << adjecentNodesID[0] << " e a SUL o #" <<  adjecentNodesID[1] << endl;
+
+                    // 2.5.3. Por fim, temos que verificar se existem (!= -1) e se contêm tbm wall na mesma wallPosition. Se isto for verdade vamos aplicar o pathLoss
+                    if (adjecentNodesID[0] != -1)
+                    {
+                       if (pathLossMatrix[adjecentNodesID[0]][wallPosition] != -1)
+                       {
+                           if(wallPosition == 2) // Wall a ESTE
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                       << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[0], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                       << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                       << adjecentNodesID[0] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                           }
+                           else // Wall a OESTE
+                           {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[0]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[0]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[0]][wallPosition], wall->betweenCells[0], 150);
+
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[0] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                      << adjecentNodesID[0] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[0], 150);
+                               this->updatePathLossElement(adjecentNodesID[0], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                           }
+                       }
+                    }
+
+                    if (adjecentNodesID[1] != -1)
+                    {
+                        if (pathLossMatrix[adjecentNodesID[1]][wallPosition] != -1)
+                        {
+                            if(wallPosition == 2) // Wall a ESTE
+                            {
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                        << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                       << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                                this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                                this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[0], 150);
+
+                                ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                     << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                     << adjecentNodesID[1] << endl;
+
+                                this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[1], 150);
+                                this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                            }
+                            else // Wall a OESTE
+                            {
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                      << " pelo que temos de fazer o pathLoss entre #" <<  wall->betweenCells[0] << " e #"
+                                      << pathLossMatrix[adjecentNodesID[1]][wallPosition] << endl;
+
+                               this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[adjecentNodesID[1]][wallPosition], 150);
+                               this->updatePathLossElement(pathLossMatrix[adjecentNodesID[1]][wallPosition], wall->betweenCells[0], 150);
+
+                               ev << "[WirelessChannel::initialize] O nó #" << adjecentNodesID[1] << " contem wall a " << wallPosition
+                                    << " pelo que temos de fazer o pathLoss entre #" <<  pathLossMatrix[wall->betweenCells[0]][wallPosition] << " e #"
+                                    << adjecentNodesID[1] << endl;
+
+                               this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][wallPosition], adjecentNodesID[1], 150);
+                               this->updatePathLossElement(adjecentNodesID[1], pathLossMatrix[wall->betweenCells[0]][wallPosition], 150);
+                            }
+                        }
+                    }
+
+                    break;
+            }
+
+            // 2.5.2. Vamos verificar se o pontos cardeais secundarios n têm tbm de ser atualizados
+            if (pathLossMatrix[wall->betweenCells[0]][(wallPosition + 2) % 8] != -1)
+            {
+                ev << "[WirelessChannel::initialize] Existe tbm uma wall na posição #" << (wallPosition + 2) % 8 << " da cell #" << wall->betweenCells[0] << endl;
+
+                // Temos outra wall por isso temos que descobrir que nós atualizar no pathloss
+                switch (wallPosition)
+                {
+                    case 0:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Norte e temos uma a Este. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][0] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][0] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][0] + 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                    case 2:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Este e temos uma a Sul. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][4] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][4] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][4] + 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                    case 4:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Sul e temos uma a Oeste. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][4] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][4] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][4] - 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                    case 6:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Oeste e temos uma a Norte. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][0] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][0] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][0] - 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                }
+            }
+            if (pathLossMatrix[wall->betweenCells[0]][(wallPosition + 6) % 8] != -1)
+            {
+                ev << "[WirelessChannel::initialize] Existe tbm uma wall na posição #" << (wallPosition + 6) % 8 << " da cell #" << wall->betweenCells[0] << endl;
+
+                // Temos outra wall por isso temos que descobrir que nós atualizar no pathloss
+                switch (wallPosition)
+                {
+                    case 0:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Norte e temos uma a Oeste. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][0] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][0] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][0] - 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                    case 2:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Este e temos uma a Norte. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][0] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][0] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][0] + 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                    case 4:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Sul e temos uma a Este. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][4] + 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][4] + 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][4] + 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                    case 6:
+                    {
+                        ev << "[WirelessChannel::initialize] Esta wall é a Oeste e temos uma a Sul. Vamos fazer o pathLoss entre #" << wall->betweenCells[0]
+                           << " e #" << pathLossMatrix[wall->betweenCells[0]][4] - 1 << endl;
+                        this->updatePathLossElement(wall->betweenCells[0], pathLossMatrix[wall->betweenCells[0]][4] - 1, 150);
+                        this->updatePathLossElement(pathLossMatrix[wall->betweenCells[0]][4] - 1, wall->betweenCells[0], 150);
+                        break;
+                    }
+                }
+            }
         }
         else
         {
             ev << "[WirelessChannel::initialize] Não vale a pena atualizar o pathLoss porque o nó #" << wall->betweenCells[0] << " n tem vizinho." << endl;
         }
+
+        // TODO: Temos de ver se os pontos cardeais secundários (NW, etc) têm tbm de ser atualizados
     }
 
     trace() << "Time for Wireless Channel module initialization: " <<

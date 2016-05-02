@@ -38,9 +38,6 @@ class PersonsPhysicalProcess: public CastaliaModule {
 	const char *description;
 	int numSensorNodes;
 
-	// Where pointers to sensorNodes gonna be. This is needed to simulate the movement sensor part
-    cArray *sensorNodes;
-
 	double defaultValue;
 	double *valuesTable;
 
@@ -53,6 +50,9 @@ class PersonsPhysicalProcess: public CastaliaModule {
 	void readIniFileParameters(void);
 
  public:
+	// Where pointers to sensorNodes gonna be. This is needed to simulate the movement sensor part
+    cArray *sensorNodes;
+
 	// Function to Sensor Nodes be added to the Array when they initialized themselves
     void registrySensorNodes(cModule *s);
 

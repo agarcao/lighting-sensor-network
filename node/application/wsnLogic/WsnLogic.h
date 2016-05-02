@@ -12,7 +12,7 @@ enum WSNLogicMessageTypes {
     LIGHT_RADIOUS_CONE = 3
 };
 
-enum PersonMovementDirections {
+enum NodeNeighborsDirections {
     NORTH = 0,
     NORTHEAST = 1,
     EAST = 2,
@@ -24,14 +24,14 @@ enum PersonMovementDirections {
 };
 
 enum WsnLogicTimers {
-    CONE_NORTH_DIRECTION = PersonMovementDirections::NORTH,
-    CONE_NORTHEAST_DIRECTION = PersonMovementDirections::NORTHEAST,
-    CONE_EAST_DIRECTION = PersonMovementDirections::EAST,
-    CONE_SOUTHEAST_DIRECTION = PersonMovementDirections::SOUTHEAST,
-    CONE_SOUTH_DIRECTION = PersonMovementDirections::SOUTH,
-    CONE_SOUTHWEST_DIRECTION = PersonMovementDirections::SOUTHWEST,
-    CONE_WEST_DIRECTION = PersonMovementDirections::WEST,
-    CONE_NORTHWEST_DIRECTION = PersonMovementDirections::NORTHWEST,
+    CONE_NORTH_DIRECTION = NodeNeighborsDirections::NORTH,
+    CONE_NORTHEAST_DIRECTION = NodeNeighborsDirections::NORTHEAST,
+    CONE_EAST_DIRECTION = NodeNeighborsDirections::EAST,
+    CONE_SOUTHEAST_DIRECTION = NodeNeighborsDirections::SOUTHEAST,
+    CONE_SOUTH_DIRECTION = NodeNeighborsDirections::SOUTH,
+    CONE_SOUTHWEST_DIRECTION = NodeNeighborsDirections::SOUTHWEST,
+    CONE_WEST_DIRECTION = NodeNeighborsDirections::WEST,
+    CONE_NORTHWEST_DIRECTION = NodeNeighborsDirections::NORTHWEST,
     DIMINISH_LIGHT = 8
 };
 
@@ -55,7 +55,6 @@ class WsnLogic: public VirtualApplication {
     double randomBackoffIntervalFraction;
     bool sentOnce;
 
-    map<int, int> neighborsNodesIds;        // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
     list<int> movementDirections;           // Tem a lista de direcções recebidas
 
     float timeToDeleteMovementDirection;  // This tell us the seconds that a movement direction stay in the movementDirections list
@@ -75,6 +74,9 @@ class WsnLogic: public VirtualApplication {
     void handleSensorReading(SensorReadingMessage *);
     void timerFiredCallback(int);
     void handleSelfEvent();
+
+ public:
+    map<int, int> neighborsNodesIds;        // Contem o mapeamento entre o localização dos nós vizinhos e o seu ID
 };
 
 #endif              // _WSNLOGIC_H_

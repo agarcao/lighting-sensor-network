@@ -117,16 +117,16 @@ void PersonNode::finish()
 int PersonNode::checkDirection(string movementDirection)
 {
     if(movementDirection == "North"){
-        return PersonMovementDirections::NORTH;
+        return PersonMovementDirections::UP;
     }
     else if(movementDirection == "East"){
-        return PersonMovementDirections::EAST;
+        return PersonMovementDirections::RIGHT;
     }
     else if(movementDirection == "South"){
-        return PersonMovementDirections::SOUTH;
+        return PersonMovementDirections::DOWN;
     }
     else if(movementDirection == "West"){
-        return PersonMovementDirections::WEST;
+        return PersonMovementDirections::LEFT;
     }
     return 0;
 }
@@ -134,7 +134,7 @@ int PersonNode::checkDirection(string movementDirection)
 int PersonNode::changeDirection(bool force)
 {
     bool trueOrFalse = (rand() % 100) > (100 - (this->changeDirectionProbability * 100)) || force;
-    int directions[4] = {PersonMovementDirections::NORTH, PersonMovementDirections::EAST, PersonMovementDirections::SOUTH, PersonMovementDirections::WEST};
+    int directions[4] = {PersonMovementDirections::UP, PersonMovementDirections::RIGHT, PersonMovementDirections::DOWN, PersonMovementDirections::LEFT};
 
 
     // Se for para mudar
@@ -161,16 +161,16 @@ int PersonNode::getDirectionX(int direction)
 {
     switch (direction)
     {
-        case PersonMovementDirections::EAST:
+        case PersonMovementDirections::RIGHT:
         {
             return 1;
         }
-        case PersonMovementDirections::WEST:
+        case PersonMovementDirections::LEFT:
         {
             return -1;
         }
-        case PersonMovementDirections::NORTH:
-        case PersonMovementDirections::SOUTH:
+        case PersonMovementDirections::UP:
+        case PersonMovementDirections::DOWN:
         {
             return 0;
         }
@@ -181,16 +181,16 @@ int PersonNode::getDirectionY(int direction)
 {
     switch (direction)
     {
-        case PersonMovementDirections::NORTH:
+        case PersonMovementDirections::UP:
         {
             return 1;
         }
-        case PersonMovementDirections::SOUTH:
+        case PersonMovementDirections::DOWN:
         {
             return -1;
         }
-        case PersonMovementDirections::EAST:
-        case PersonMovementDirections::WEST:
+        case PersonMovementDirections::RIGHT:
+        case PersonMovementDirections::LEFT:
         {
             return 0;
         }

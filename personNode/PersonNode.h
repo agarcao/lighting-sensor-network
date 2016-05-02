@@ -13,10 +13,10 @@
 #include "CastaliaModule.h"
 
 enum PersonMovementDirections {
-    NORTH = 1,
-    EAST = 2,
-    SOUTH = 3,
-    WEST = 4,
+    UP = 1,
+    RIGHT = 2,
+    DOWN = 3,
+    LEFT = 4,
 };
 
 class PersonNode : public cSimpleModule
