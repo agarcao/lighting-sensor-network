@@ -29,7 +29,7 @@ struct WsnLogicData
     unsigned short originNodeID;
     unsigned short senderNodeID;
     int destinationNodesID[8];
-    int hop;
+    unsigned int hop;
 };
 
 void doPacking(cCommBuffer *b, WsnLogicData& a);

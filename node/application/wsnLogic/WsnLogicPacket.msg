@@ -24,7 +24,7 @@ struct WsnLogicData {
     unsigned short originNodeID;		// Node ID from where the msg is originated from
 	unsigned short senderNodeID;		// Node ID from the sender node
 	int destinationNodesID[8];			// List of Node ID's that are the destination of the message. All the others discard the msg
-	int hop;							// msg hop number in the network
+	unsigned int hop;					// msg hop number in the network
 } 
 
 packet WsnLogicDataPacket extends ApplicationPacket {

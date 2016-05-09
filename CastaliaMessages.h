@@ -48,7 +48,8 @@ enum CastaliaMessageTypes {
 
 	APPLICATION_PACKET = 50,
 
-	RESOURCE_MANAGER_LIGHT = 51
+	RESOURCE_MANAGER_LIGHT = 51,
+	GET_ENERGY = 52
 };
 
 #endif

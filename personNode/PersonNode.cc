@@ -17,6 +17,9 @@ void PersonNode::initialize()
     this->moveVelocity = par("moveVelocity");
     this->changeDirectionProbability = par("changeDirectionProbability");
 
+    int field_x = this->getAncestorPar("field_x");
+    int field_y = this->getAncestorPar("field_y");
+
     int directionInt = this->checkDirection(par("startDirection"));
     if (directionInt) {
         this->movementDirection = directionInt;
@@ -26,11 +29,11 @@ void PersonNode::initialize()
     }
 
     // Random Values for initial Person position on the map
-    //this->xCoor = rand() % field_x;
-    //this->yCoor = rand() % field_y;
+    this->xCoor = rand() % field_x;
+    this->yCoor = rand() % field_y;
 
-    this->xCoor = 15;
-    this->yCoor = 225;
+    //this->xCoor = 15;
+    //this->yCoor = 200;
 
     ev << "Eu (Person Node #" << this->getIndex() << " ) inicializei-me na posição ("
             << this->xCoor << ", " << this->yCoor << ")" << endl;
@@ -196,8 +199,6 @@ int PersonNode::getDirectionY(int direction)
         }
     }
 }
-
-
 
 // Tell us if with the movement we bump an obstacle or not
 bool PersonNode::bumpObstacle(void)

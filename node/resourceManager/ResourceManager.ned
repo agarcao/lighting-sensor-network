@@ -27,11 +27,11 @@ simple ResourceManager {
 	int cpuInitialPowerLevel = default (-1);	// index for the cpuPowerLevels array
 	double sigmaCPUClockDrift = default (0.00003);	// the standard deviation of the Drift of the CPU
 
-	double initialEnergy = default (18720);
+	double initialEnergy = default (10000000);
 	// energy of the node in Joules, default value corresponds to two AA batteries
 	// source http://www.allaboutbatteries.com/Energy-tables.html
 
-	double baselineNodePower = default (6);	// periodic energy consumption of node, in mWatts
+	double baselineNodePower = default (100);	// periodic energy consumption of node, in mWatts
 	double periodicEnergyCalculationInterval = default (1000);	// interval for energy calculation, in msec     
 	
 	//int lightIntensity = default(0); // Says what is the intensity of the actuator (light)

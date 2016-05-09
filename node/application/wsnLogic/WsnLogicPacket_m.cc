@@ -192,7 +192,7 @@ const char *WsnLogicDataDescriptor::getFieldTypeString(void *object, int field) 
         "unsigned short",
         "unsigned short",
         "int",
-        "int",
+        "unsigned int",
     };
     return (field>=0 && field<5) ? fieldTypeStrings[field] : NULL;
 }
@@ -240,7 +240,7 @@ std::string WsnLogicDataDescriptor::getFieldAsString(void *object, int field, in
         case 2: return ulong2string(pp->senderNodeID);
         case 3: if (i>=8) return "";
                 return long2string(pp->destinationNodesID[i]);
-        case 4: return long2string(pp->hop);
+        case 4: return ulong2string(pp->hop);
         default: return "";
     }
 }
@@ -260,7 +260,7 @@ bool WsnLogicDataDescriptor::setFieldAsString(void *object, int field, int i, co
         case 2: pp->senderNodeID = string2ulong(value); return true;
         case 3: if (i>=8) return false;
                 pp->destinationNodesID[i] = string2long(value); return true;
-        case 4: pp->hop = string2long(value); return true;
+        case 4: pp->hop = string2ulong(value); return true;
         default: return false;
     }
 }

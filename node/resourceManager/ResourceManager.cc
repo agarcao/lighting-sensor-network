@@ -62,15 +62,36 @@ void ResourceManager::initialize()
 
         ppp->updateGUI();
 	}
+
+	scheduleAt(simTime() + 1, new ResourceManagerMessage("Get stats", GET_ENERGY));
 }
 
 void ResourceManager::calculateEnergySpent()
 {
 	if (remainingEnergy > 0) {
-		simtime_t timePassed = simTime() - timeOfLastCalculation;
+	    simtime_t timePassed = simTime() - timeOfLastCalculation;
 		trace() << "energy consumed in the last " << timePassed << 
 			"s is " <<(timePassed * currentNodePower);
-		consumeEnergy(SIMTIME_DBL(timePassed * currentNodePower / 1000.0));
+		ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::calculateEnergySpent] Chego aqui. Tempo que passou antes do ultimo calculo "
+		                << timePassed << " s e consumi " << timePassed * currentNodePower << endl;
+
+		double consumeEnergyValue = SIMTIME_DBL(timePassed * currentNodePower / 1000.0);
+		double consumeEnergyLight = 0;
+
+		// Temos de checkar se luz esta acesa
+		if(this->lightIntensity == 1)
+		{
+		    consumeEnergyLight = SIMTIME_DBL(timePassed * 10000 / 1000.0);
+		}
+		else if (this->lightIntensity == 2)
+		{
+		    consumeEnergyLight = SIMTIME_DBL(timePassed * 19000 / 1000.0);
+		}
+
+		ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::calculateEnergySpent] Chamo consumeEnergy com  "
+		                                << consumeEnergyValue + consumeEnergyLight << endl;
+
+		consumeEnergy(consumeEnergyValue + consumeEnergyLight);
 		timeOfLastCalculation = simTime();
 
 		cancelEvent(energyMsg);
@@ -96,11 +117,13 @@ void ResourceManager::handleMessage(cMessage * msg)
 		}
 	
 		case TIMER_SERVICE:{
+		    ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::handleMessage::TIMER_SERVICE] Vamos calcular a energia" << endl;
 			calculateEnergySpent();
 			return;
 		}
 
 		case RESOURCE_MANAGER_DRAW_POWER:{
+		    ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::handleMessage::RESOURCE_MANAGER_DRAW_POWER] Vamos calcular a energia" << endl;
 			ResourceManagerMessage *resMsg = check_and_cast<ResourceManagerMessage*>(msg);
 			int id = resMsg->getSenderModuleId();
 			double oldPower = storedPowerConsumptions[id];
@@ -109,7 +132,8 @@ void ResourceManager::handleMessage(cMessage * msg)
 					currentNodePower - oldPower + resMsg->getPowerConsumed();
 			if (!disabled)
 				calculateEnergySpent();
-			currentNodePower = currentNodePower - oldPower + resMsg->getPowerConsumed();
+			ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::handleMessage::RESOURCE_MANAGER_DRAW_POWER] currentNodePower - " << currentNodePower << endl;
+			//currentNodePower = currentNodePower - oldPower + resMsg->getPowerConsumed();
 			storedPowerConsumptions[id] = resMsg->getPowerConsumed();
 			break;
 		}
@@ -117,6 +141,13 @@ void ResourceManager::handleMessage(cMessage * msg)
 		case RESOURCE_MANAGER_LIGHT:{
 		    ResourceManagerMessage *resMsg = check_and_cast<ResourceManagerMessage*>(msg);
 		    this->changeLightIntensity(resMsg->getIncreaseLightIntensity());
+		    break;
+		}
+
+		case GET_ENERGY: {
+		    ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::handleMessage::GET_ENERGY] Energia consumida até aos " << simTime()
+		            << " s é " << getSpentEnergy() << endl;
+		    scheduleAt(simTime() + 1, new ResourceManagerMessage("Get stats", GET_ENERGY));
 		    break;
 		}
 
@@ -163,8 +194,11 @@ void ResourceManager::consumeEnergy(double amount)
 		send(new cMessage("Destroy node message", OUT_OF_ENERGY), "toMac");
 		send(new cMessage("Destroy node message", OUT_OF_ENERGY), "toRadio");
                 remainingEnergy = 0;
-	} else
+	} else{
 		remainingEnergy -= amount;
+		ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::consumeEnergy] Consumi " << amount << " Joules e ainda tenho "
+		        << remainingEnergy << endl;
+	}
 }
 
 void ResourceManager::destroyNode(void)
