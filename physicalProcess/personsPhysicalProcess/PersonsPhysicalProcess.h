@@ -20,6 +20,7 @@
 
 #include "PersonNode.h"
 #include "SensorManager.h"
+#include "ResourceManager.h"
 
 using namespace std;
 

@@ -1,21 +1,10 @@
-/*******************************************************************************
- *  Copyright: National ICT Australia,  2007 - 2010                            *
- *  Developed at the ATP lab, Networked Systems research theme                 *
- *  Author(s): Athanassios Boulis, Dimosthenis Pediaditakis, Yuriy Tselishchev *
- *  This file is distributed under the terms in the attached LICENSE file.     *
- *  If you do not find this file, copies can be found by writing to:           *
- *                                                                             *
- *      NICTA, Locked Bag 9013, Alexandria, NSW 1435, Australia                *
- *      Attention:  License Inquiry.                                           *
- *                                                                             *  
- *******************************************************************************/
-
 #ifndef _RESOURCEMANAGER_H_
 #define _RESOURCEMANAGER_H_
 
 #include <map>
 #include "CastaliaModule.h"
 #include "ResourceManagerMessage_m.h"
+#include "Wall.h"
 
 using namespace std;
 
@@ -29,7 +18,6 @@ class ResourceManager: public CastaliaModule {
 	/*--- The .ned file's parameters ---*/
 	double sigmaCPUClockDrift;
 	double cpuClockDrift;
-	double initialEnergy;
 	double ramSize;
 	double baselineNodePower;
 	double currentNodePower;
@@ -37,7 +25,6 @@ class ResourceManager: public CastaliaModule {
 	double periodicEnergyCalculationInterval;
 
 	/*--- Custom class parameters ---*/
-	double remainingEnergy;
 	double totalRamData;
 
 	map<int,double> storedPowerConsumptions;
@@ -57,6 +44,9 @@ class ResourceManager: public CastaliaModule {
 	void changeLightIntensity(bool increase);
 
  public:
+	double initialEnergy;
+	double remainingEnergy;
+
 	double getCPUClockDrift(void);
 	void consumeEnergy(double amount);
 	double getSpentEnergy(void);

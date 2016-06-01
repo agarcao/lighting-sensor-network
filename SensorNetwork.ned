@@ -1,14 +1,3 @@
-//********************************************************************************
-//*  Copyright: National ICT Australia,  2007 - 2010                             *
-//*  Developed at the ATP lab, Networked Systems research theme                  *
-//*  Author(s): Athanassios Boulis, Dimosthenis Pediaditakis, Yuriy Tselishchev  *
-//*  This file is distributed under the terms in the attached LICENSE file.      *
-//*  If you do not find this file, copies can be found by writing to:            *
-//*                                                                              *
-//*      NICTA, Locked Bag 9013, Alexandria, NSW 1435, Australia                 *
-//*      Attention:  License Inquiry.                                            *
-//*                                                                              *
-//*******************************************************************************/
 package wsn_lighting;
 
 network SensorNetwork {
@@ -41,6 +30,9 @@ network SensorNetwork {
         @display("bgb=$field_x,$field_y,#FFF;bgg=$cell_size,1;");
 
      submodules:	
+		obstacle[numObstacles]: <obstaclesName> like wsn_lighting.obstacles.iObstacle
+    	{
+    	}
 
     	physicalProcess[numPhysicalProcesses]: <physicalProcessName> like wsn_lighting.physicalProcess.iPhysicalProcess
     	{
@@ -74,11 +66,7 @@ network SensorNetwork {
     	        @display("i=block/user_vs;is=vs;");
 	        gates:        		
         		toPhysicalProcess[numPhysicalProcesses];
-    	}
-    	
-    	obstacle[numObstacles]: <obstaclesName> like wsn_lighting.obstacles.iObstacle
-    	{
-    	}
+    	}   	
     	
     	wirelessChannel:wsn_lighting.wirelessChannel.WirelessChannel 
     	{

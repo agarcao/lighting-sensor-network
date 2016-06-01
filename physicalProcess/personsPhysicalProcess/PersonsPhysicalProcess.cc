@@ -29,6 +29,8 @@ void PersonsPhysicalProcess::initialize()
 
 	// Initialize the cArray with the number of Sensor Nodes
     this->sensorNodes = new cArray(NULL, this->numSensorNodes, 0);
+
+    scheduleAt(simTime() + 10, new ResourceManagerMessage("Get all stats", GET_ALL_STATS));
 }
 
 void PersonsPhysicalProcess::handleMessage(cMessage * msg)
@@ -76,6 +78,29 @@ void PersonsPhysicalProcess::handleMessage(cMessage * msg)
 			double arrival = genk_dblrand(0) * car_interarrival + car_interarrival / 2;
 			scheduleAt(simTime() + arrival,	msg);*/
 			return;
+		}
+
+		case GET_ALL_STATS:
+		{
+		    cObject *sensorNodeObject;
+            cModule *sensorNodeModule, *resourceManagerModule;
+            ResourceManager *resourceManager;
+            double energySpend = 0;
+            int i;
+
+            for (i = 0; i < this->sensorNodes->size(); i++)
+            {
+                sensorNodeObject = this->sensorNodes->get(i);
+                sensorNodeModule = this->getParentModule()->getModuleByPath(sensorNodeObject->getFullPath().c_str());
+                resourceManagerModule = sensorNodeModule->getSubmodule("ResourceManager");
+                resourceManager = check_and_cast<ResourceManager*>(resourceManagerModule);
+
+                energySpend =  energySpend + (resourceManager->initialEnergy - resourceManager->remainingEnergy);
+            }
+
+            ev << "[PersonsPhysical::handleMessage::GET_ENERGY] Energia consumida até aos " << simTime() << " s é " << energySpend << endl;
+            scheduleAt(simTime() + 10, new ResourceManagerMessage("Get all stats", GET_ALL_STATS));
+            break;
 		}
 
 		default: {
@@ -130,7 +155,7 @@ void PersonsPhysicalProcess::checkPersonNodeDetection(PersonNode *p)
 {
     Enter_Method_Silent("checkPersonNodeDetection(personNode *p)");
 
-    ev << "[Persons Physical Process Module] Let see if any sensor detect the person #" << p->getIndex() << endl;
+    //ev << "[Persons Physical Process Module] Let see if any sensor detect the person #" << p->getIndex() << endl;
 
     int i, centerX, centerY, dist;
     int personNodeXCoord = p->xCoor;
@@ -155,12 +180,12 @@ void PersonsPhysicalProcess::checkPersonNodeDetection(PersonNode *p)
         if (dist <= sensorManager->getSensorRadius())
         {
             // Se tiver temos de desplotar as acções que acontecem após o sensor encontrar movimento
-            ev << "[Persons Physical Process Module] Sensor #" << sensorNodeModule->getIndex() << " detected the person node #" << p->getIndex() << endl;
+            //ev << "[Persons Physical Process Module] Sensor #" << sensorNodeModule->getIndex() << " detected the person node #" << p->getIndex() << endl;
             sensorManager->detectedMovement();
         }
         else
         {
-            ev << "[Persons Physical Process Module] Sensor #" << sensorNodeModule->getIndex() << " do NOT detected the person node #" << p->getIndex() << endl;
+            //ev << "[Persons Physical Process Module] Sensor #" << sensorNodeModule->getIndex() << " do NOT detected the person node #" << p->getIndex() << endl;
         }
     }
 }

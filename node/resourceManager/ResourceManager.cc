@@ -1,15 +1,3 @@
-/*******************************************************************************
- *  Copyright: National ICT Australia,  2007 - 2010                            *
- *  Developed at the ATP lab, Networked Systems research theme                 *
- *  Author(s): Athanassios Boulis, Dimosthenis Pediaditakis, Yuriy Tselishchev *
- *  This file is distributed under the terms in the attached LICENSE file.     *
- *  If you do not find this file, copies can be found by writing to:           *
- *                                                                             *
- *      NICTA, Locked Bag 9013, Alexandria, NSW 1435, Australia                *
- *      Attention:  License Inquiry.                                           *
- *                                                                             *  
- *******************************************************************************/
-
 #include "ResourceManager.h"
 #include "PersonsPhysicalProcess.h"
 
@@ -46,9 +34,28 @@ void ResourceManager::initialize()
 	disabled = true;
 
 	this->lightIntensity = 0;
+	this->nearObstacle = false;
+
+	// obstaculos
+	Wall *wall;
+	int i;
+
+	cModule *sensorNetwork = this->getModuleByPath("SensorNetwork");
+	int numObstacles = sensorNetwork->par("numObstacles");
+
+    for (i = 0; i < numObstacles; i++)
+    {
+        // 2.2. Vamos buscar o modulo
+        ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::initialize] EVamos buscar a wall[" << i << "]" << endl;
+        wall = check_and_cast <Wall*>(sensorNetwork->getSubmodule("obstacle", i));
+        ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::initialize] A wall[" << i << "] tem como celulas adjacentes o #"
+                << wall->betweenCells[0] << " e o #" << wall->betweenCells[1] << endl;
+        if(wall->betweenCells[0] == this->getParentModule()->getIndex() || wall->betweenCells[1] == this->getParentModule()->getIndex())
+            this->nearObstacle = true;
+    }
 
 	// Aqui preciso de ir buscar o parametro nearObstacle do nó para ver que display devo pôr
-	if (this->getAncestorPar("nearObstacle"))
+	if (this->getAncestorPar("nearObstacle") || this->nearObstacle)
 	{
 	    ev << "[Sensor Node #" << this->getParentModule()->getIndex() << "::ResourceManager::initialize] Este nó está perto dum obstaculo por isso deve estar iluminado" << endl;
 	    this->lightIntensity = 1;
